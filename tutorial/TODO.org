@@ -1,0 +1,7 @@
+* TODO Calculator
+* TODO Add the lexer and parser
+* TODO Add antlr with a script that downloads the jar if missing
+* TODO Figure out how to locally preview the Jekyll generated site
+* DONE Add the language registration
+* DONE Add the launcher class
+* DONE Verify that part01/a works and gets us up and running in IntelliJ

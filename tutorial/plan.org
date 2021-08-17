@@ -1,0 +1,24 @@
+* Introduction
+** A little bit about what Truffle is and why it's cool.
+** Plan for the tutorial
+- Focus on the interpreter, not lexing, parsing, compilation   
+* Setup of environment
+- Installation of GraalVM
+- Maven, IntelliJ (will prefer to work in IDE)
+* Our first language, a calculator!
+** Floating point only
+** But wait, we should support use a more precise type!
+** And we can make it a bit more efficient using integers for integer
+** Let's see that JIT in action
+This will require some benchmarking tool using for example a unit
+test?
+* Variables
+* Functions
+* For loop
+* Blocks?
+* Debugging support and IDE integration
+* Tools to help with development (graphs?)  
+* Closures
+* Wait? Closures you say? Can I have classes?
+* Is this Javascript?  
+  
