@@ -251,7 +251,7 @@ stdin. Add the following to
 `launcher/src/main/java/toyl/launcher/Launcher.java`:
 
 ```java
-package toyl.launcher;
+package toyl;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -317,7 +317,7 @@ First our empty `ToylContext` class, place this in
 `language/src/main/java/toyl/language/ToylContext.java`:
 
 ```java
-package toyl.language;
+package toyl;
 
 public class ToylContext {
 }
@@ -327,7 +327,7 @@ And then we need our AST Node in
 `language/src/main/java/toyl/language/ToylProgramNode.java`:
 
 ```java
-package toyl.language.ast;
+package toyl.ast;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -353,7 +353,7 @@ public class ToylProgramNode extends RootNode {
 And lastly the class that will put it all together `language/src/main/java/toyl/language/ToylLanguage.java`:
 
 ```java
-package toyl.language;
+package toyl;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;

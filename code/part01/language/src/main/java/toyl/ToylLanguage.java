@@ -1,10 +1,10 @@
-package toyl.language;
+package toyl;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import toyl.language.ast.ToylProgramNode;
+import toyl.ast.ToylProgramNode;
 
 @TruffleLanguage.Registration(
     id = ToylLanguage.ID,

@@ -1,8 +1,7 @@
-package toyl.launcher;
+package toyl;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
-import toyl.language.ToylLanguage;
 
 import java.io.BufferedReader;
 import java.io.IOException;

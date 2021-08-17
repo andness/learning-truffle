@@ -1,4 +1,4 @@
-package toyl.language;
+package toyl;
 
 public class ToylContext {
 }

@@ -1,4 +1,4 @@
-package toyl.language.ast;
+package toyl.ast;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
