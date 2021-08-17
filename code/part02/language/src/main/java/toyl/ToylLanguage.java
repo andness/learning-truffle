@@ -4,7 +4,17 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.source.Source;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+
+import toyl.ast.ToylNode;
 import toyl.ast.ToylProgramNode;
+import toyl.parser.ToylLexer;
+import toyl.parser.ToylParseTreeVisitor;
+import toyl.parser.ToylParser;
+
+import java.io.IOException;
 
 @TruffleLanguage.Registration(
     id = ToylLanguage.ID,
@@ -22,11 +32,18 @@ public class ToylLanguage extends TruffleLanguage<ToylContext> {
   }
 
   @Override
-  protected CallTarget parse(ParsingRequest request) {
-    var source = request.getSource();
-    ToylProgramNode program = new ToylProgramNode(this, new FrameDescriptor(), source.getCharacters().toString());
-
+  protected CallTarget parse(ParsingRequest request) throws IOException {
+    var expr = this.parseExpr(request.getSource());
+    var program = new ToylProgramNode(this, new FrameDescriptor(), expr);
     return Truffle.getRuntime().createCallTarget(program);
+  }
+
+  private ToylNode parseExpr(Source source) throws IOException {
+    var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
+    var parser = new ToylParser(new CommonTokenStream(lexer));
+    var parseTreeVisitor = new ToylParseTreeVisitor();
+    ToylParser.ProgramContext program = parser.program();
+    return parseTreeVisitor.visit(program);
   }
 
 }
