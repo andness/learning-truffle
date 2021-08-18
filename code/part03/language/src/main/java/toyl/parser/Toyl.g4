@@ -9,5 +9,5 @@ expr
     | '(' expr ')'                            #ParenthesizedExpr
     ;
 
-LITERAL_NUMBER: [0-9]+;
+LITERAL_NUMBER: [0-9]('.'?[0-9]+)?;
 WS    : [ \t\r\n]+ -> skip ;

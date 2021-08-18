@@ -3,13 +3,13 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ToylLiteralNumberNode extends ToylNode {
-  private final long value;
+  private final double value;
   public ToylLiteralNumberNode(String number) {
-    this.value = Long.parseLong(number);
+    this.value = Double.parseDouble(number);
   }
 
   @Override
-  public long execute(VirtualFrame frame) {
+  public double execute(VirtualFrame frame) {
     return this.value;
   }
 }
