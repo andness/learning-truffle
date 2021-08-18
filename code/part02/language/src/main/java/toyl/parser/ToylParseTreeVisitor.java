@@ -15,8 +15,16 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
     if (ctx.LITERAL_NUMBER() != null) {
       return new ToylLiteralNumberNode(ctx.LITERAL_NUMBER().getText());
     }
+    if (ctx.parenthesizedExpr() != null) {
+      return this.visitParenthesizedExpr(ctx.parenthesizedExpr());
+    }
     var left = this.visit(ctx.left);
     var right = this.visit(ctx.right);
     return new ToylArithmeticOpNode(left, right, ctx.binaryOp.getText());
+  }
+
+  @Override
+  public ToylNode visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx) {
+    return this.visitExpr(ctx.expr());
   }
 }

@@ -17,25 +17,25 @@ public class ToylParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, T__1=2, T__2=3, T__3=4, LITERAL_NUMBER=5, WS=6;
+		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, LITERAL_NUMBER=7, WS=8;
 	public static final int
-		RULE_program = 0, RULE_expr = 1;
+		RULE_program = 0, RULE_expr = 1, RULE_parenthesizedExpr = 2;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"program", "expr"
+			"program", "expr", "parenthesizedExpr"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'+'", "'-'", "'*'", "'/'"
+			null, "'*'", "'/'", "'+'", "'-'", "'('", "')'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, null, null, null, null, "LITERAL_NUMBER", "WS"
+			null, null, null, null, null, null, null, "LITERAL_NUMBER", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -111,9 +111,9 @@ public class ToylParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(4);
+			setState(6);
 			expr(0);
-			setState(5);
+			setState(7);
 			match(EOF);
 			}
 		}
@@ -133,6 +133,9 @@ public class ToylParser extends Parser {
 		public Token binaryOp;
 		public ExprContext right;
 		public TerminalNode LITERAL_NUMBER() { return getToken(ToylParser.LITERAL_NUMBER, 0); }
+		public ParenthesizedExprContext parenthesizedExpr() {
+			return getRuleContext(ParenthesizedExprContext.class,0);
+		}
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
 		}
@@ -166,45 +169,88 @@ public class ToylParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			{
-			setState(8);
-			match(LITERAL_NUMBER);
+			setState(12);
+			_errHandler.sync(this);
+			switch (_input.LA(1)) {
+			case LITERAL_NUMBER:
+				{
+				setState(10);
+				match(LITERAL_NUMBER);
+				}
+				break;
+			case T__4:
+				{
+				setState(11);
+				parenthesizedExpr();
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(15);
+			setState(22);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,0,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,2,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					{
-					_localctx = new ExprContext(_parentctx, _parentState);
-					_localctx.left = _prevctx;
-					_localctx.left = _prevctx;
-					pushNewRecursionContext(_localctx, _startState, RULE_expr);
-					setState(10);
-					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-					setState(11);
-					((ExprContext)_localctx).binaryOp = _input.LT(1);
-					_la = _input.LA(1);
-					if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << T__2) | (1L << T__3))) != 0)) ) {
-						((ExprContext)_localctx).binaryOp = (Token)_errHandler.recoverInline(this);
-					}
-					else {
-						if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-						_errHandler.reportMatch(this);
-						consume();
-					}
-					setState(12);
-					((ExprContext)_localctx).right = expr(2);
+					setState(20);
+					_errHandler.sync(this);
+					switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
+					case 1:
+						{
+						_localctx = new ExprContext(_parentctx, _parentState);
+						_localctx.left = _prevctx;
+						_localctx.left = _prevctx;
+						pushNewRecursionContext(_localctx, _startState, RULE_expr);
+						setState(14);
+						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
+						setState(15);
+						((ExprContext)_localctx).binaryOp = _input.LT(1);
+						_la = _input.LA(1);
+						if ( !(_la==T__0 || _la==T__1) ) {
+							((ExprContext)_localctx).binaryOp = (Token)_errHandler.recoverInline(this);
+						}
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
+						setState(16);
+						((ExprContext)_localctx).right = expr(4);
+						}
+						break;
+					case 2:
+						{
+						_localctx = new ExprContext(_parentctx, _parentState);
+						_localctx.left = _prevctx;
+						_localctx.left = _prevctx;
+						pushNewRecursionContext(_localctx, _startState, RULE_expr);
+						setState(17);
+						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
+						setState(18);
+						((ExprContext)_localctx).binaryOp = _input.LT(1);
+						_la = _input.LA(1);
+						if ( !(_la==T__2 || _la==T__3) ) {
+							((ExprContext)_localctx).binaryOp = (Token)_errHandler.recoverInline(this);
+						}
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
+						setState(19);
+						((ExprContext)_localctx).right = expr(3);
+						}
+						break;
 					}
 					} 
 				}
-				setState(17);
+				setState(24);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,0,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,2,_ctx);
 			}
 			}
 		}
@@ -219,6 +265,46 @@ public class ToylParser extends Parser {
 		return _localctx;
 	}
 
+	public static class ParenthesizedExprContext extends ParserRuleContext {
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public ParenthesizedExprContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_parenthesizedExpr; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ToylVisitor ) return ((ToylVisitor<? extends T>)visitor).visitParenthesizedExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final ParenthesizedExprContext parenthesizedExpr() throws RecognitionException {
+		ParenthesizedExprContext _localctx = new ParenthesizedExprContext(_ctx, getState());
+		enterRule(_localctx, 4, RULE_parenthesizedExpr);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(25);
+			match(T__4);
+			setState(26);
+			expr(0);
+			setState(27);
+			match(T__5);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
 	public boolean sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
 		switch (ruleIndex) {
 		case 1:
@@ -229,18 +315,24 @@ public class ToylParser extends Parser {
 	private boolean expr_sempred(ExprContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 0:
-			return precpred(_ctx, 1);
+			return precpred(_ctx, 3);
+		case 1:
+			return precpred(_ctx, 2);
 		}
 		return true;
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\b\25\4\2\t\2\4\3"+
-		"\t\3\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\7\3\20\n\3\f\3\16\3\23\13\3\3"+
-		"\3\2\3\4\4\2\4\2\3\3\2\3\6\2\23\2\6\3\2\2\2\4\t\3\2\2\2\6\7\5\4\3\2\7"+
-		"\b\7\2\2\3\b\3\3\2\2\2\t\n\b\3\1\2\n\13\7\7\2\2\13\21\3\2\2\2\f\r\f\3"+
-		"\2\2\r\16\t\2\2\2\16\20\5\4\3\4\17\f\3\2\2\2\20\23\3\2\2\2\21\17\3\2\2"+
-		"\2\21\22\3\2\2\2\22\5\3\2\2\2\23\21\3\2\2\2\3\21";
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\n \4\2\t\2\4\3\t"+
+		"\3\4\4\t\4\3\2\3\2\3\2\3\3\3\3\3\3\5\3\17\n\3\3\3\3\3\3\3\3\3\3\3\3\3"+
+		"\7\3\27\n\3\f\3\16\3\32\13\3\3\4\3\4\3\4\3\4\3\4\2\3\4\5\2\4\6\2\4\3\2"+
+		"\3\4\3\2\5\6\2\37\2\b\3\2\2\2\4\16\3\2\2\2\6\33\3\2\2\2\b\t\5\4\3\2\t"+
+		"\n\7\2\2\3\n\3\3\2\2\2\13\f\b\3\1\2\f\17\7\t\2\2\r\17\5\6\4\2\16\13\3"+
+		"\2\2\2\16\r\3\2\2\2\17\30\3\2\2\2\20\21\f\5\2\2\21\22\t\2\2\2\22\27\5"+
+		"\4\3\6\23\24\f\4\2\2\24\25\t\3\2\2\25\27\5\4\3\5\26\20\3\2\2\2\26\23\3"+
+		"\2\2\2\27\32\3\2\2\2\30\26\3\2\2\2\30\31\3\2\2\2\31\5\3\2\2\2\32\30\3"+
+		"\2\2\2\33\34\7\7\2\2\34\35\5\4\3\2\35\36\7\b\2\2\36\7\3\2\2\2\5\16\26"+
+		"\30";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

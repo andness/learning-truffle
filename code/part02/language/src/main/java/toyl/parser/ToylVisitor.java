@@ -22,4 +22,10 @@ public interface ToylVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExpr(ToylParser.ExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ToylParser#parenthesizedExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx);
 }
