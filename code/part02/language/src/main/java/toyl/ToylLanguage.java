@@ -42,8 +42,7 @@ public class ToylLanguage extends TruffleLanguage<ToylContext> {
     var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
     var parser = new ToylParser(new CommonTokenStream(lexer));
     var parseTreeVisitor = new ToylParseTreeVisitor();
-    ToylParser.ProgramContext program = parser.program();
-    return parseTreeVisitor.visit(program);
+    return parseTreeVisitor.visit(parser.program());
   }
 
 }

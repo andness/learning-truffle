@@ -17,7 +17,7 @@ public class ToylArithmeticOpNode extends ToylNode {
   @Override
   public long execute(VirtualFrame frame) {
     var leftVal = this.left.execute(frame);
-    var rightVal = this.left.execute(frame);
+    var rightVal = this.right.execute(frame);
     return switch (this.binaryOp) {
       case "+" -> leftVal + rightVal;
       case "-" -> leftVal - rightVal;

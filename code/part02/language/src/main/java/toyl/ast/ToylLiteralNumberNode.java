@@ -3,7 +3,7 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ToylLiteralNumberNode extends ToylNode {
-  private long value;
+  private final long value;
   public ToylLiteralNumberNode(String number) {
     this.value = Long.parseLong(number);
   }
