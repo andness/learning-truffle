@@ -16,6 +16,6 @@ public class ToylProgramNode extends RootNode {
 
   @Override
   public Object execute(VirtualFrame frame) {
-    return this.expr.execute(frame);
+    return this.expr.executeGeneric(frame);
   }
 }

@@ -1,8 +1,8 @@
 package toyl.parser;
 
-import toyl.ast.ToylArithmeticOpNode;
-import toyl.ast.ToylLiteralNumberNode;
-import toyl.ast.ToylNode;
+import toyl.ast.*;
+
+import java.math.BigDecimal;
 
 public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   @Override
@@ -17,11 +17,22 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
 
   @Override
   public ToylNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
-    return new ToylArithmeticOpNode(this.visit(ctx.left), this.visit(ctx.right), ctx.binaryOp.getText());
+    return switch (ctx.binaryOp.getText()) {
+      case "+" -> ToylAddNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
+      case "-" -> ToylSubNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
+      case "/" -> ToylDivNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
+      case "*" -> ToylMulNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
+      default -> throw new IllegalStateException("Unexpected arithmetic operator: " + ctx.binaryOp.getText());
+    };
   }
 
   @Override
   public ToylNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
-    return new ToylLiteralNumberNode(ctx.LITERAL_NUMBER().getText());
+    var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
+    if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
+      return new ToylLiteralDoubleNode(number.doubleValue());
+    } else {
+      return new ToylLiteralIntNode(number.intValue());
+    }
   }
 }
