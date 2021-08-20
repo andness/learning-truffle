@@ -10,7 +10,6 @@
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="inheritedJdk" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.graalvm.truffle:truffle-dsl-processor:21.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.graalvm.truffle:truffle-api:21.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.graalvm.sdk:graal-sdk:21.2.0" level="project" />
@@ -23,5 +22,6 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-params:5.7.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-engine:5.7.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-engine:1.7.2" level="project" />
+    <orderEntry type="inheritedJdk" />
   </component>
 </module>
