@@ -2,7 +2,7 @@ package toyl.ast;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ToylLiteralIntNode extends ToylNode {
+public class ToylLiteralIntNode extends ToylExpressionNode {
   private final int value;
   public ToylLiteralIntNode(int value) {
     this.value = value;

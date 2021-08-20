@@ -8,7 +8,7 @@ import com.oracle.truffle.api.source.Source;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
-import toyl.ast.ToylNode;
+import toyl.ast.ToylRootNode;
 import toyl.ast.ToylProgramNode;
 import toyl.parser.ToylLexer;
 import toyl.parser.ToylParseTreeVisitor;
@@ -33,16 +33,17 @@ public class ToylLanguage extends TruffleLanguage<ToylContext> {
 
   @Override
   protected CallTarget parse(ParsingRequest request) throws IOException {
-    var expr = this.parseExpr(request.getSource());
-    var program = new ToylProgramNode(this, new FrameDescriptor(), expr);
+    final FrameDescriptor frameDescriptor = new FrameDescriptor();
+    var statements = this.parseProgram(frameDescriptor, request.getSource());
+    var program = new ToylRootNode(this, frameDescriptor, statements);
     return Truffle.getRuntime().createCallTarget(program);
   }
 
-  private ToylNode parseExpr(Source source) throws IOException {
+  private ToylProgramNode parseProgram(FrameDescriptor frameDescriptor, Source source) throws IOException {
     var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
     var parser = new ToylParser(new CommonTokenStream(lexer));
-    var parseTreeVisitor = new ToylParseTreeVisitor();
-    return parseTreeVisitor.visit(parser.program());
+    var parseTreeVisitor = new ToylParseTreeVisitor(frameDescriptor);
+    return parseTreeVisitor.visitProgram(parser.program());
   }
 
 }

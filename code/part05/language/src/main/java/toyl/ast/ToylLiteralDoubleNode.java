@@ -3,7 +3,7 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-public class ToylLiteralDoubleNode extends ToylNode {
+public class ToylLiteralDoubleNode extends ToylExpressionNode {
   private final double value;
   public ToylLiteralDoubleNode(double value) {
     this.value = value;

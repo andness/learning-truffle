@@ -49,4 +49,14 @@ class ToylLanguageTest {
     assertEquals(Integer.MAX_VALUE + 1L, evalDouble("2147483647 + 1"));
   }
 
+  @Test
+  void testVariables() {
+    var program = """
+        var pi = 3.14
+        var r = 42
+        pi * r * r
+        """;
+    assertEquals(5538.96, evalDouble(program));
+  }
+
 }

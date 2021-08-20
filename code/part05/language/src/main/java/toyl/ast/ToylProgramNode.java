@@ -1,21 +1,25 @@
 package toyl.ast;
 
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
 
-public class ToylProgramNode extends RootNode {
+import java.util.ArrayList;
+import java.util.List;
 
-  private final ToylNode expr;
+public class ToylProgramNode extends ToylStatementNode {
 
-  public ToylProgramNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, ToylNode expr) {
-    super(language, frameDescriptor);
-    this.expr = expr;
+  private final List<ToylStatementNode> statements = new ArrayList<>();
+
+  public ToylProgramNode(List<ToylStatementNode> statements) {
+    this.statements.addAll(statements);
   }
 
   @Override
-  public Object execute(VirtualFrame frame) {
-    return this.expr.executeGeneric(frame);
+  public Object executeGeneric(VirtualFrame frame) {
+    Object result = null;
+    for (ToylStatementNode statement : statements) {
+      result = statement.executeGeneric(frame);
+    }
+    return result;
   }
+
 }
