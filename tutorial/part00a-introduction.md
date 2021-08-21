@@ -1,28 +1,33 @@
 # Introduction
 
-Hi and welcome to my tutorial on Truffle. Truffle is a really cool
-framework for creating programming languages. Whether you want to
-write your own, or you want to implement some existing language.
+If you've ever tried to implement your own programming language, or
+you have tried to implement an existing languages you have probably
+found that it is a quite involved task. Aside from the lexing and
+parsing you need to decide if you want to write an interpreter or a
+compiler. Interpreters are easier, and easiest to write is the AST
+interpreter. But AST interpreters are slow. So if you want something
+that has acceptable performance you have to either come up with some
+form of bytecode and VM to interpret it, or you target an existing VM
+like the JVM.
 
-I'm a bit of a programming language geek, and I've had several stalled
-attempts at implementing a programming language. There's a lot
-involved of course, you have to figure out the design, write a lexer
-and a parser, then perhaps try to compile it, or if you want a
-slightly less daunting task you go for an interpreter. But it's a lot
-of work.
+Truffle is a framework that promises both the implementation ease of
+an AST interpreter and the performance of a JIT compiled bytecode
+interpreter. That sounds too good to be true, but there are
+implementations of existing languages that prove this, like
+TruffleRuby which outperforms JRuby in many cases.
 
 In my view the most fun part of designing a programming language is
 exploring the design space of the language itself, and all the
 complexities of lexers and parsers and byte codes and interpreters and
 compilers and JIT and everything can just get a little too much. It's
-easy to get stuck. The thing is, today there are tools that take much
-of the complexity out of this. With ANTLR as the parser generator you
-can have a lexer and parser created from an easy to understand grammar
-file. To implement your language your best bet then is to write an
-interpreter. And that's where Truffle comes in. The magic of truffle
-is that all you need to do is write the interpreter, and then Truffle
-will take the work of turning that into a compiler for you. It almost
-sounds to good to be true.
+easy to get stuck. But with a wonderful tool like ANTLR the complexity
+of lexing and parsing vanishes, and now, with Truffle, the language
+implementation part can potentially become a lot easier.
+
+And that's not all. If you write your own language you also have to
+build the whole toolchain. With Truffle you can get debugging support
+almost for free, and you can even get programs in your language
+compiled into native images!
 
 ## Overview of this tutorial
 
@@ -33,7 +38,7 @@ ANTLR we don't have to slog through the toil of lexing and parsing
 just to get to the fun part of seeing the language design come to
 life. Now don't get me wrong, lexing and parsing can be a lot of fun
 and is an interesting area of study by itself, but there are other
-places you can learn about that. 
+places you can learn about that.
 
 This tutorial will instead focus on incrementally growing the language
 feature by feature. We'll start with just simple arithmetic
