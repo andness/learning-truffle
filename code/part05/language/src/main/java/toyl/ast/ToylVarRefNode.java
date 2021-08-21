@@ -3,7 +3,6 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 public class ToylVarRefNode extends ToylExpressionNode {
   private final String name;
@@ -15,11 +14,11 @@ public class ToylVarRefNode extends ToylExpressionNode {
   }
 
   @Override
-  public int executeInt(VirtualFrame frame) throws UnexpectedResultException {
+  public int executeInt(VirtualFrame frame) {
     try {
       return frame.getInt(this.slot);
     } catch (FrameSlotTypeException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -28,7 +27,7 @@ public class ToylVarRefNode extends ToylExpressionNode {
     try {
       return frame.getDouble(this.slot);
     } catch (FrameSlotTypeException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 

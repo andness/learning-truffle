@@ -300,7 +300,7 @@ use of variables:
         var r = 42
         pi * r * r
         """;
-    assertEquals(0, evalDouble(program));
+    assertEquals(5538.96, evalDouble(program));
   }
 
 ```
@@ -403,3 +403,104 @@ the expression is? We'll get back to that.
 
     TODO: Go back and replace this with the right code once I understand how or leave my exporation here for the reader to follow?
 
+With assignment done we can tackle variable referencing. We need to
+implement `visitVarRefExpr` and we need to construct a
+`ToylVarRefNode` from there. You should definitely try to write these
+two classes yourself. And then you can compare with my version below.
+
+Here's `visitVarRefExpr`:
+
+```java
+  @Override
+  public ToylStatementNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
+    final String name = ctx.NAME().getText();
+    return new ToylVarRefNode(name, this.frameDescriptor.findFrameSlot(name));
+  }
+```
+
+And here's `ToylVarRefNode`:
+
+```java
+package toyl.ast;
+
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+
+public class ToylVarRefNode extends ToylExpressionNode {
+  private final String name;
+  private final FrameSlot slot;
+
+  public ToylVarRefNode(String name, FrameSlot slot) {
+    this.name = name;
+    this.slot = slot;
+  }
+
+  @Override
+  public int executeInt(VirtualFrame frame) {
+    try {
+      return frame.getInt(this.slot);
+    } catch (FrameSlotTypeException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @Override
+  public double executeDouble(VirtualFrame frame) {
+    try {
+      return frame.getDouble(this.slot);
+    } catch (FrameSlotTypeException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @Override
+  public Object executeGeneric(VirtualFrame frame) {
+    return frame.getValue(this.slot);
+  }
+}
+```
+
+Notice that Truffle throws a checked `FrameSlotTypeException` that we
+have to catch. Currently our language is so simple that we can't
+really mix up types, we only have two types, and Truffle can
+implicitly cast our integers into doubles, but we still need to catch
+and rethrow this exception.
+
+If we try to run our test now you'll notice that it fails. And if
+you're smarter than me you may have noticed something about the
+`FrameDescriptor`. I wrote as if this was the first time we saw it and
+I just created it inside my `ToylParseTreeVisitor`. But look at
+`ToylLanguage.parse` and you'll notice another `new FrameDescriptor()`
+call. So the parse tree and interpreter don't share the same
+`FrameDescriptor`. How is the runtime going to know about the slots we
+created at parse time then?
+
+To fix this we need to create the `FrameDescriptor` in `ToylLanguage`
+and make sure it is shared by the parser and the interpreter, so pass
+it through `parseProgram` and into `ToylParseTreeVisitor` and make
+sure you pass the same instance to `ToylRootNode`. Here's how the two
+`parse` and `parseProgram` methods in `ToylLanguage` end up:
+
+```java
+  @Override
+  protected CallTarget parse(ParsingRequest request) throws IOException {
+    final FrameDescriptor frameDescriptor = new FrameDescriptor();
+    var statements = this.parseProgram(frameDescriptor, request.getSource());
+    var program = new ToylRootNode(this, frameDescriptor, statements);
+    return Truffle.getRuntime().createCallTarget(program);
+  }
+
+  private ToylProgramNode parseProgram(FrameDescriptor frameDescriptor, Source source) throws IOException {
+    var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
+    var parser = new ToylParser(new CommonTokenStream(lexer));
+    var parseTreeVisitor = new ToylParseTreeVisitor(frameDescriptor);
+    return parseTreeVisitor.visitProgram(parser.program());
+  }
+```
+
+With that in place our test should succeed! Awesome! You may also
+decide you want to play around with the calculator a bit, and if you
+do you'll notice that it immediately prints out the result of the
+first expression you enter. Since we now support executing sequences
+of statements we need to update the launcher to handle this.
