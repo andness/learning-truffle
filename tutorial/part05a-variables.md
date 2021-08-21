@@ -503,4 +503,9 @@ With that in place our test should succeed! Awesome! You may also
 decide you want to play around with the calculator a bit, and if you
 do you'll notice that it immediately prints out the result of the
 first expression you enter. Since we now support executing sequences
-of statements we need to update the launcher to handle this.
+of statements we need to update the launcher to handle this. That in
+itself is pretty trivial, but while doing this we'll also look into
+how we can add syntax error messages with correct line numbers. We'll
+also look into how we annotate the AST with information about the
+source to enable better runtime error messages and be able to step
+through our code in the IntelliJ debugger. Onwards to chapter 6!
