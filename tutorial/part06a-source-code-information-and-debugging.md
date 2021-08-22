@@ -162,7 +162,5 @@ var b * 4
 ```
 
 So I decided to add that. And it's something you can try doing too if
-you want, otherwise you'll find it in the source code for this chapter.
-
-## Integrating with the IDE debugger
-
+you want, otherwise you'll find it in the source code for this
+chapter.
