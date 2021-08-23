@@ -6,9 +6,11 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import toyl.ToylTypeSystem;
 
+import java.math.BigDecimal;
+
 @TypeSystemReference(ToylTypeSystem.class)
 public abstract class ToylNode extends Node {
   public abstract int executeInt(VirtualFrame frame) throws UnexpectedResultException;
-  public abstract double executeDouble(VirtualFrame frame);
+  public abstract BigDecimal executeNumber(VirtualFrame frame);
   public abstract Object executeGeneric(VirtualFrame frame);
 }

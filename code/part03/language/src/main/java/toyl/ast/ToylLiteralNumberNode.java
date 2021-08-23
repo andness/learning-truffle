@@ -3,9 +3,12 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-public class ToylLiteralDoubleNode extends ToylNode {
-  private final double value;
-  public ToylLiteralDoubleNode(double value) {
+import java.math.BigDecimal;
+import java.math.MathContext;
+
+public class ToylLiteralNumberNode extends ToylNode {
+  private final BigDecimal value;
+  public ToylLiteralNumberNode(BigDecimal value) {
     this.value = value;
   }
 
@@ -15,7 +18,7 @@ public class ToylLiteralDoubleNode extends ToylNode {
   }
 
   @Override
-  public double executeDouble(VirtualFrame frame) {
+  public BigDecimal executeNumber(VirtualFrame frame) {
     return this.value;
   }
 

@@ -30,7 +30,7 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   public ToylNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
     var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
     if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
-      return new ToylLiteralDoubleNode(number.doubleValue());
+      return new ToylLiteralNumberNode(number);
     } else {
       return new ToylLiteralIntNode(number.intValue());
     }

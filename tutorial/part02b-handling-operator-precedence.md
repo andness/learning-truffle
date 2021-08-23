@@ -103,20 +103,24 @@ arithmeticExpr
 parenthesizedExpr : '(' expr ')';
 ```
 
-You can try pasting that grammar into our grammar file and you'll se
-why that won't work. The problem is that we have left recursion. I'm
-not going to write more about this here as there is an excellent
-explanation of this problem available at
-[Stackoverflow](https://stackoverflow.com/questions/26460013/antlr4-mutually-left-recursive-error-when-parsing).
+You can try pasting that grammar into our grammar file and if you have
+the IntelliJ ANTLR Plugin you should immediately see an error
+indicator. The problem is that we have left recursion. I'm not going
+to write more about this here as there is an excellent explanation of
+this problem available at
+[Stackoverflow](https://stackoverflow.com/questions/26460013/antlr4-mutually-left-recursive-error-when-parsing). But
+I'll show you how we can simplify this code a bit.
 
 ## Simplifying the code using alternative labels
 
-The code does get a little clunky when we have to add all these
-if-tests and if you're wrinkling your nose at it I agree. The nice
-thing about the `BaseTreeVisitor` that ANTLR generates is that we
-should really only have to implement the "leaf" methods. We can clean
-up the code a lot by using labels for the `expr` rule alternatives. To
-do this, we add a `#<name>` after each alternative, like this:
+The code got a little clunky when we have to add all these if-tests
+and if you're wrinkling your nose at it I agree. You can probably
+imagine how this is going to grow as we add more language
+constructs. The nice thing about the `BaseTreeVisitor` that ANTLR
+generates is that we should really only have to implement the "leaf"
+methods. We can clean up the code a lot by using labels for the `expr`
+rule alternatives. To do this, we add a `#<name>` after each
+alternative, like this:
 
 ```
 expr
@@ -127,8 +131,10 @@ expr
     ;
 ```
 
-Note that as part of this I've also deleted the `parenthesizedExpr`
-and inlined it into the `expr` rule directly. 
+It's ok to use the same label multiple times for the rules that have
+the same structure, and we make use of this to represent our
+`ArithmeticExpression`.  Note that I've also deleted the
+`parenthesizedExpr` and inlined it into the `expr` rule directly.
 
 We can now simplify our `ToylParseTreeVisitor`. Here's the whole
 thing:
@@ -163,4 +169,4 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
 }
 ```
 
-That's pretty clean! 
+That's pretty clean!

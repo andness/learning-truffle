@@ -3,6 +3,8 @@ package toyl.ast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
+import java.math.BigDecimal;
+
 @NodeChild("left") @NodeChild("right")
 public abstract class ToylSubNode extends ToylNode {
   @Specialization(rewriteOn = ArithmeticException.class)
@@ -11,7 +13,7 @@ public abstract class ToylSubNode extends ToylNode {
   }
 
   @Specialization(replaces = "subInts")
-  protected double subDoubles(double leftValue, double rightValue) {
-    return leftValue - rightValue;
+  protected BigDecimal subDoubles(BigDecimal leftValue, BigDecimal rightValue) {
+    return leftValue.subtract(rightValue);
   }
 }

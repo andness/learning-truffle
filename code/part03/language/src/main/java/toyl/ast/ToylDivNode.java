@@ -3,6 +3,9 @@ package toyl.ast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 @NodeChild("left") @NodeChild("right")
 public abstract class ToylDivNode extends ToylNode {
   @Specialization(rewriteOn = ArithmeticException.class)
@@ -11,7 +14,7 @@ public abstract class ToylDivNode extends ToylNode {
   }
 
   @Specialization(replaces = "divInts")
-  protected double divDoubles(double leftValue, double rightValue) {
-    return leftValue * rightValue;
+  protected BigDecimal divNumbers(BigDecimal leftValue, BigDecimal rightValue) {
+    return leftValue.divide(rightValue, MathContext.DECIMAL128);
   }
 }

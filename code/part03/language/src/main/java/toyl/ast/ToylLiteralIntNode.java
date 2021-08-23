@@ -2,6 +2,9 @@ package toyl.ast;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 public class ToylLiteralIntNode extends ToylNode {
   private final int value;
   public ToylLiteralIntNode(int value) {
@@ -14,8 +17,8 @@ public class ToylLiteralIntNode extends ToylNode {
   }
 
   @Override
-  public double executeDouble(VirtualFrame frame) {
-    return this.value;
+  public BigDecimal executeNumber(VirtualFrame frame) {
+    return new BigDecimal(this.value, MathContext.DECIMAL128);
   }
 
   @Override

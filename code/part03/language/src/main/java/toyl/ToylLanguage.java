@@ -15,6 +15,7 @@ import toyl.parser.ToylParseTreeVisitor;
 import toyl.parser.ToylParser;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @TruffleLanguage.Registration(
     id = ToylLanguage.ID,
