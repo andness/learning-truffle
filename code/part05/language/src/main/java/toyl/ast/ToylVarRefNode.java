@@ -1,20 +1,21 @@
 package toyl.ast;
 
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ToylVarRefNode extends ToylExpressionNode {
+public abstract class ToylVarRefNode extends ToylExpressionNode {
   private final String name;
-  private final FrameSlot slot;
+  protected final FrameSlot slot;
 
   public ToylVarRefNode(String name, FrameSlot slot) {
     this.name = name;
     this.slot = slot;
   }
 
-  @Override
-  public int executeInt(VirtualFrame frame) {
+  @Specialization(guards = "frame.isInt(slot)")
+  public int readInt(VirtualFrame frame) {
     try {
       return frame.getInt(this.slot);
     } catch (FrameSlotTypeException e) {
@@ -22,8 +23,8 @@ public class ToylVarRefNode extends ToylExpressionNode {
     }
   }
 
-  @Override
-  public double executeDouble(VirtualFrame frame) {
+  @Specialization(guards = "frame.isDouble(slot)")
+  public double readDouble(VirtualFrame frame) {
     try {
       return frame.getDouble(this.slot);
     } catch (FrameSlotTypeException e) {

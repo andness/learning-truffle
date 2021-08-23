@@ -59,4 +59,14 @@ class ToylLanguageTest {
     assertEquals(5538.96, evalDouble(program));
   }
 
+  @Test
+  void testIntVariables() {
+    var program = """
+        var a = 2
+        var b = 2
+        a + b
+        """;
+    assertEquals(4, evalInt(program));
+  }
+
 }
