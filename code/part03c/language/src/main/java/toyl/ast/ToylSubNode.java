@@ -14,7 +14,7 @@ public abstract class ToylSubNode extends ToylNode {
   }
 
   @Specialization(replaces = "subLongs")
-  protected BigDecimal subDoubles(BigDecimal leftValue, BigDecimal rightValue) {
+  protected BigDecimal subNumbers(BigDecimal leftValue, BigDecimal rightValue) {
     return leftValue.subtract(rightValue);
   }
 }

@@ -1,119 +1,48 @@
-## Premature optimization for fun and education
+## Generating optimized code using the Truffle DSL
 
-The idea is simple enough and is called speculative
-optimization. Basically, we guess that most of the time the numbers
-are going to be integers and we'll default to using regular integer
-math, and the JIT compiler will generate machine code for that
-case. But if we detect that the numbers won't fit into our integer
-type we'll deoptimize and fall back to the slower version of the code
-using doubles. While not precisely the same, you can read more about
-how this is done in the V8 engine here:
-https://mrale.ph/blog/2015/01/11/whats-up-with-monomorphism.html
+So we've seen (some of) the code needed to use an optimal
+representation for our numbers. But now we're going to learn that
+thanks to the Truffle DSL you don't need to write any of this code.
 
-Let's start with the simple stuff. We need to add a few more methods
-to our base `ToylNode` class, and we need to implement these methods
-in our AST nodes. Our `ToylLiteralNumberNode` will split into two, one
-for integers and one for doubles, and our `ToylArithmeticOpNode` is
-where we really start to see the Truffle specialization framework do
-its work.
-
-Let's start with our base node in `ToylNode.java`:
+Actually, I'm just going to dump the new `ToylAddNode` with the magic
+DSL annotations here and you'll see just how simple it is:
 
 ```java
 package toyl.ast;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class ToylNode extends Node {
-  public abstract int executeInt(VirtualFrame frame) throws UnexpectedResultException;
-  public abstract double executeDouble(VirtualFrame frame);
-  public abstract Object executeGeneric(VirtualFrame frame);
-}
-```
+import java.math.BigDecimal;
 
-And now for our `ToylLiteralIntNode.java`:
-
-```java
-package toyl.ast;
-
-import com.oracle.truffle.api.frame.VirtualFrame;
-
-public class ToylLiteralIntNode extends ToylNode {
-  private final int value;
-  public ToylLiteralIntNode(int value) {
-    this.value = value;
+@NodeChild("left")
+@NodeChild("right")
+public abstract class ToylAddNode extends ToylNode {
+  @Specialization(rewriteOn = ArithmeticException.class)
+  protected long addLongs(long leftValue, long rightValue) {
+    return Math.addExact(leftValue, rightValue);
   }
 
-  @Override
-  public int executeInt(VirtualFrame frame) {
-    return this.value;
-  }
-
-  @Override
-  public double executeDouble(VirtualFrame frame) {
-    return this.value;
-  }
-
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    return this.value;
+  @Specialization(replaces = "addLongs")
+  protected BigDecimal addNumbers(BigDecimal leftValue, BigDecimal rightValue) {
+    return leftValue.add(rightValue);
   }
 }
 ```
 
-And the `ToylLiteralDoubleNode.java`:
+Not bad! Probably makes no sense yet, but we'll get to that. The point
+is that this is a lot simpler than the code we wrote by hand. When you
+compile this code the DSL code generator kicks in and generates a
+class called `ToylAddNodeGen`. It might be a good idea to take a look
+at that code. You might recognize some of the structure. And you may
+also be very very happy you didn't have to write that code by hand!
+The code we looked at earlier was just a small piece of what Truffle
+generates to fully implement this behaviour.
 
-```java
-package toyl.ast;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
+TODO rewrite from there...
 
-public class ToylLiteralDoubleNode extends ToylNode {
-  private final double value;
-  public ToylLiteralDoubleNode(double value) {
-    this.value = value;
-  }
 
-  @Override
-  public int executeInt(VirtualFrame frame) throws UnexpectedResultException {
-    throw new UnexpectedResultException(this.value);
-  }
-
-  @Override
-  public double executeDouble(VirtualFrame frame) {
-    return this.value;
-  }
-
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    return this.value;
-  }
-}
-```
-
-Cool. So now we need to fix the `visitLiteralNumber` in
-`ToylParseTreeVisitor`. We want to detect if the number we're dealing
-with can fit in an integer. To do this, we'll use the `BigDecimal`
-class. I suggest you give it a shot. There's probably smarter ways of
-doing this than the code I'm gonna show here, but anyway, here it is:
-
-```java
-  @Override
-  public ToylNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
-    var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
-    if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
-      return new ToylLiteralDoubleNode(number.doubleValue());
-    } else {
-      return new ToylLiteralIntNode(number.intValue());
-    }
-  }
-```
-
-So now we have the literals sorted and we need to implement our
-arithmetic operation node.
 
 ### The specialized version of `ToylArithmeticOpNode`
 

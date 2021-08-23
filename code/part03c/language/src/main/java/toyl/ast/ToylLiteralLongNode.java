@@ -5,20 +5,20 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import java.math.BigDecimal;
 import java.math.MathContext;
 
-public class ToylLiteralIntNode extends ToylNode {
-  private final int value;
-  public ToylLiteralIntNode(int value) {
+public class ToylLiteralLongNode extends ToylNode {
+  private final long value;
+  public ToylLiteralLongNode(long value) {
     this.value = value;
   }
 
   @Override
-  public int executeInt(VirtualFrame frame) {
+  public long executeLong(VirtualFrame frame) {
     return this.value;
   }
 
   @Override
   public BigDecimal executeNumber(VirtualFrame frame) {
-    return new BigDecimal(this.value, MathContext.DECIMAL128);
+    return new BigDecimal(this.value);
   }
 
   @Override

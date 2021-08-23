@@ -4,7 +4,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 public class ToylLiteralNumberNode extends ToylNode {
   private final BigDecimal value;
