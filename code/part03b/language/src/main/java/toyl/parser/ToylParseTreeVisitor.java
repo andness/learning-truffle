@@ -1,8 +1,8 @@
 package toyl.parser;
 
-import toyl.ast.ToylArithmeticOpNode;
-import toyl.ast.ToylLiteralNumberNode;
-import toyl.ast.ToylNode;
+import toyl.ast.*;
+
+import java.math.BigDecimal;
 
 public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   @Override
@@ -17,11 +17,16 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
 
   @Override
   public ToylNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
-    return new ToylArithmeticOpNode(this.visit(ctx.left), this.visit(ctx.right), ctx.binaryOp.getText());
+    return new ToylAddNode(this.visit(ctx.left), this.visit(ctx.right));
   }
 
   @Override
   public ToylNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
-    return new ToylLiteralNumberNode(ctx.LITERAL_NUMBER().getText());
+    var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
+    try {
+      return new ToylLiteralLongNode(number.longValueExact());
+    } catch(ArithmeticException e) {
+      return new ToylLiteralNumberNode(number);
+    }
   }
 }

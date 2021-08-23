@@ -1,18 +1,28 @@
 package toyl.ast;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 public class ToylLiteralNumberNode extends ToylNode {
   private final BigDecimal value;
-  public ToylLiteralNumberNode(String number) {
-    this.value = new BigDecimal(number, MathContext.UNLIMITED);
+  public ToylLiteralNumberNode(BigDecimal number) {
+    this.value = number;
   }
 
   @Override
-  public BigDecimal execute(VirtualFrame frame) {
+  public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
+    throw new UnexpectedResultException(value);
+  }
+
+  @Override
+  public BigDecimal executeNumber(VirtualFrame frame) {
+    return this.value;
+  }
+
+  @Override
+  public Object executeGeneric(VirtualFrame frame) {
     return this.value;
   }
 }
