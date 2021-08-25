@@ -9,8 +9,8 @@ language.
 We could create AST nodes directly and execute them, but that's going
 to get quite unwieldy and as we grow the AST we'll have to constantly
 rewrite the tests. It seems that testing at the interface will be a
-lot more practical, i.e. program text in, result out. So let's try
-that approach.
+lot more practical, and natural interface is the program text. So
+program text in, result out.
 
 For our testing we'll use JUnit 5, so let's start by updating our
 Maven deps. We're going to need the JUnit 5 dependencies, and we also
@@ -91,21 +91,20 @@ class ToylLanguageTest {
     context.close();
   }
 
-  private Object eval(String program) {
+  private String eval(String program) {
     return context.eval("toyl", program);
   }
 
   @Test
   void testIntegerAddition() {
-    assertEquals(2 + 2, eval("2+2"));
+    assertEquals("4", eval("2+2"));
   }
 }
 ```
 
 And we should be able to run the test. You can try running it in maven
-using `mvn test`, or you can try to run it IntelliJ which is a lot
-more convenient and what I'd recommend that you do while
-developing. Either way, both attempts are going to fail:
+using `mvn test`, or you can try to run it IntelliJ. Either way, both
+attempts are going to fail:
 
 ```
 java.lang.IllegalArgumentException: A language with id 'toyl' is not installed. Installed languages are: [js, llvm].
@@ -154,52 +153,84 @@ won't work, you need to use an IntelliJ variable, so add this:
 Now you can run tests by clicking Control-Shift-R (or debug tests with
 Control-Shift-D). Great!
 
-And if you run the test... it fails. You should get something like:
-
-> org.opentest4j.AssertionFailedError: expected: java.lang.Integer@30124529<4> but was: org.graalvm.polyglot.Value@68df9280<4>
-
-Ok that's probably understandable. The return value from
-`context.eval` returns a `Value` instance which obviously won't be
-equal to the integer we expected. So we can fix this by extracting the
-underlying value using the right `as*` method on `Value`. I decided to
-add two eval overloads to my test class like this:
-
-```java
-  private int evalInt(String program) {
-    return context.eval("toyl", program).asInt();
-  }
-
-  private double evalDouble(String program) {
-    return context.eval("toyl", program).asDouble();
-  }
-```
-
-And then the tests end up like this:
+We should probably verify that decimals works too. Let's try a simple
+test for this:
 
 ```java
   @Test
-  void testIntegerAddition() {
-    assertEquals(2 + 2, evalInt("2+2"));
-  }
-
-  @Test
-  void testDoubleAddition() {
-    assertEquals(2.0 + 2.0, evalDouble("2.0+2.0"));
-  }
-
-  @Test
-  void testMixedAddition() {
-    assertEquals(2 + 2.0, evalDouble("2+2.0"));
-  }
-
-  @Test
-  void testIntegerOverflow() {
-    assertEquals(Integer.MAX_VALUE + 1L, evalDouble("2147483647 + 1"));
+  void testDecimal() {
+    assertEquals("1.5", eval("3.0/2"));
   }
 ```
 
-That's all I'm going to say about testing for now. Having automated
-tests is really useful for quickly testing little program snippets so
-we don't have to use the launcher and enter the program by hand each
-time, and of course for protecting us from unexpected regressions as
-we start adding more complexity to our language.
+But it fails. Seems we have a bug! Ok, you might have noticed it long
+ago and maybe you even fixed it, in which case you've sorta ruined my
+pedagogical point, but if you started with the code from part3c you
+should get the same error:
+
+> org.opentest4j.AssertionFailedError: 
+> Expected :1.5
+> Actual   :1
+
+To debug this I put a breakpoint in `ToylProgramNode.execute`. And
+looking at the AST we see one slightly surprising thing. The AST looks
+like this:
+
+```
+ToylDivNodeGen {
+  left: ToylLiteralLongNode(3),
+  right: ToylLoteralLongNode(2)
+}
+```
+
+So our `3.0` literal has been interpreted as the long
+value 3. Hmmm. Truth be told, we haven't really defined this part of
+the language semantics. I think it's reasonable that the expression
+`3/2` produces `1.5`. So how do we ensure that? Guess we need to do
+something about our division operator implementation.
+
+Here's a straightforward solution, use modulus to verify that we can
+continue with integer division:
+
+```java
+  @Specialization(rewriteOn = ArithmeticException.class)
+  protected long divLongs(long leftValue, long rightValue) {
+    var mod = leftValue % rightValue;
+    if (mod == 0) {
+      return leftValue / rightValue;
+    } else {
+      throw new ArithmeticException();
+    }
+  }
+```
+
+By simply throwing an `ArithmeticException` if the modulo is != 0 we
+will convert to `BigDecimal`. If you rerun the test now it should
+succeed. I also added a test that runs through all the operators:
+
+```java
+  @Test
+  void testAllOps() {
+    assertEquals("2.5", eval("(4-3+1)*5/4"));
+  }
+```
+
+And in the source code for this chapter you'll find a few more tests.
+
+But there's one really simple test that fails somewhat surprisingly
+(or maybe you've noticed this hole already):
+
+```java
+  @Test
+  void testNegativeLiteral() {
+    assertEquals("-1", eval("-1"));
+  }
+```
+
+> line 1:0 extraneous input '-' expecting {'(', LITERAL_NUMBER}
+>
+> org.opentest4j.AssertionFailedError: 
+> Expected :-1
+> Actual   :1
+
+Hah. We haven't actually implemented negative literals!

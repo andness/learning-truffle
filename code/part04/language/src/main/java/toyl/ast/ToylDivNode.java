@@ -9,9 +9,15 @@ import java.math.MathContext;
 @NodeChild("left")
 @NodeChild("right")
 public abstract class ToylDivNode extends ToylNode {
+
   @Specialization(rewriteOn = ArithmeticException.class)
   protected long divLongs(long leftValue, long rightValue) {
-    return leftValue / rightValue;
+    var mod = leftValue % rightValue;
+    if (mod == 0) {
+      return leftValue / rightValue;
+    } else {
+      throw new ArithmeticException();
+    }
   }
 
   @Specialization(replaces = "divLongs")

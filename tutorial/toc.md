@@ -29,6 +29,7 @@
   - The print builtin
 - Part 10: For loops
 - ? Part X: Records
+- ? Part X: Interop and @InteropLibrary and how to get that BigDecimal back into Java
 - ? Part X: Literal functions
 - ? Part X: Java interop? Polyglot interop?
 

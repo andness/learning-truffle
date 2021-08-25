@@ -24,24 +24,17 @@ class ToylLanguageTest {
   private String eval(String program) {
     return context.eval("toyl", program).asString();
   }
-  @Test
-  void testAllOps() {
-    assertEquals("2.5", eval("(4-2+1)*5/4"));
-  }
 
   @Test
   void testIntegerAddition() {
-    assertEquals("4", eval("2+2"));
+    assertEquals("5", eval("2+3"));
+    assertEquals("5", eval("2+3.0"));
+    assertEquals("5", eval("2.0+3.0"));
   }
 
   @Test
-  void testDoubleAddition() {
-    assertEquals("4.14", eval("3.14+1.0"));
-  }
-
-  @Test
-  void testMixedAddition() {
-    assertEquals("4.0", eval("2+2.0"));
+  void testDecimalAddition() {
+    assertEquals("4.15", eval("3.14+1.01"));
   }
 
   @Test
@@ -49,4 +42,20 @@ class ToylLanguageTest {
     assertEquals("9223372036854775808", eval("9223372036854775807 + 1"));
   }
 
+  @Test
+  void testDivision() {
+    assertEquals("1.5", eval("3.0/2"));
+    assertEquals("1.5", eval("3/2"));
+    assertEquals("0.3333333333333333333333333333333333", eval("1/3"));
+  }
+
+  @Test
+  void testAllOps() {
+    assertEquals("2.5", eval("(4-3+1)*5/4"));
+  }
+
+  @Test
+  void testNegativeLiteral() {
+    assertEquals("-1", eval("-1"));
+  }
 }
