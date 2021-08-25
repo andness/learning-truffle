@@ -1,0 +1,34 @@
+- Part 0: Introduction:
+  - This TOC
+  - Setting up the environment (Java, Maven, IntelliJ)
+- Part 1: A trivial language:
+  - The minimum needed to get a working language under Truffle 
+  - Basically: How to execute an AST under Truffle
+- Part 2: Introducing arithmetic operations
+  - Implementing basic arithmetic operations
+  - Learning to handle operator precedence
+- Part 3: Supporting decimal numbers
+  - Expanding from longs to decimal numbers
+  - Optimizing operations by using long for integer operations
+  - Truffle topics covered:
+    - @Specialization
+	- @TypeSystem
+	- @NodeChild
+- Part 4: Testing
+  - Adding unit tests to speed up our feedback cycle
+- Part 5: Variables
+  - Adding variables to the language
+  - We finally get to use that VirtualFrame!
+  - Specialization of variable refs
+- Part 6: Source files and syntax errors
+- Part 7: If conditional
+- Part 8: Functions
+  - We finally get to implement factorial!
+- Part 9: Strings and builtins
+  - String literals
+  - The print builtin
+- Part 10: For loops
+- ? Part X: Records
+- ? Part X: Literal functions
+- ? Part X: Java interop? Polyglot interop?
+
