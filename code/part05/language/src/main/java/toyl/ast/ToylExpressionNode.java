@@ -3,7 +3,9 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
+import java.math.BigDecimal;
+
 public abstract class ToylExpressionNode extends ToylStatementNode {
-  public abstract int executeInt(VirtualFrame frame) throws UnexpectedResultException;
-  public abstract double executeDouble(VirtualFrame frame);
+  public abstract long executeLong(VirtualFrame frame) throws UnexpectedResultException;
+  public abstract BigDecimal executeNumber(VirtualFrame frame);
 }

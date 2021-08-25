@@ -41,9 +41,9 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylStatementNode> {
   public ToylExpressionNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
     var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
     if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
-      return new ToylLiteralDoubleNode(number.doubleValue());
+      return new ToylLiteralNumberNode(new BigDecimal(number.doubleValue()));
     } else {
-      return new ToylLiteralIntNode(number.intValue());
+      return new ToylLiteralLongNode(number.intValue());
     }
   }
 
