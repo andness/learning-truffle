@@ -233,4 +233,53 @@ But there's one really simple test that fails somewhat surprisingly
 > Expected :-1
 > Actual   :1
 
-Hah. We haven't actually implemented negative literals!
+Hah. We haven't actually implemented negative literals! Let's fix
+that. Your first thought might be to modify the `LITERAL_NUMBER`
+token, adding an optional '-' at the start, like this:
+
+```
+LITERAL_NUMBER: '-'?[0-9]+('.'[0-9]+)?;
+```
+
+This won't work though. An expression like `1-1` or `1 -1` won't be
+valid because the '-' is captured by the number token instead of being
+interpreted as an operator. What we need to do instead is add a "unary
+minus" rule to our `expr` rule. But first, let's write a test!
+
+```java
+  @Test
+  void testNegativeLiteral() {
+    assertEquals("-1", eval("-1"));
+    assertEquals("2", eval("1- -1"));
+    assertEquals("2", eval("1 - -1"));
+    assertEquals("1", eval("2 -1"));
+    assertEquals("1", eval("2-1"));
+  }
+```
+
+And now we can add the new rule to `expr`:
+
+```
+expr
+    : LITERAL_NUMBER                          #LiteralNumber
+    | left=expr binaryOp=('*'|'/') right=expr #ArithmeticExpression
+    | left=expr binaryOp=('+'|'-') right=expr #ArithmeticExpression
+    | '(' expr ')'                            #ParenthesizedExpr
+    | '-' expr                                #UnaryMinus
+    ;
+```
+
+Next, we'll run `generate_parser.sh` and implement `visitUnaryMinus`
+in `ToylParseTreeVisitor`:
+
+```
+  @Override
+  public ToylNode visitUnaryMinus(ToylParser.UnaryMinusContext ctx) {
+    var valueExpr = this.visit(ctx.expr());
+    return ToylSubNodeGen.create(new ToylLiteralLongNode(0), valueExpr);
+  }
+```
+
+So this is a very simple albeit not very efficient
+implementation. Let's hope GraalVM lives up to the hype and is able to
+compile this into efficient machine code!

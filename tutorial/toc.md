@@ -14,7 +14,7 @@
     - @Specialization
 	- @TypeSystem
 	- @NodeChild
-- Part 4: Testing
+- Part 4: Testing (and fixing two issues)
   - Adding unit tests to speed up our feedback cycle
 - Part 5: Variables
   - Adding variables to the language

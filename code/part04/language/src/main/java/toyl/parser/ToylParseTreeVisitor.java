@@ -35,4 +35,10 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
       return new ToylLiteralNumberNode(number);
     }
   }
+
+  @Override
+  public ToylNode visitUnaryMinus(ToylParser.UnaryMinusContext ctx) {
+    // unary minus is implemented simply as 0 - expr
+    return ToylSubNodeGen.create(new ToylLiteralLongNode(0), this.visit(ctx.expr()));
+  }
 }

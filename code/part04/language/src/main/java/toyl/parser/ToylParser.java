@@ -150,6 +150,17 @@ public class ToylParser extends Parser {
 			else return visitor.visitChildren(this);
 		}
 	}
+	public static class UnaryMinusContext extends ExprContext {
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public UnaryMinusContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ToylVisitor ) return ((ToylVisitor<? extends T>)visitor).visitUnaryMinus(this);
+			else return visitor.visitChildren(this);
+		}
+	}
 	public static class ArithmeticExpressionContext extends ExprContext {
 		public ExprContext left;
 		public Token binaryOp;
@@ -193,7 +204,7 @@ public class ToylParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(13);
+			setState(15);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case LITERAL_NUMBER:
@@ -219,11 +230,22 @@ public class ToylParser extends Parser {
 				match(T__5);
 				}
 				break;
+			case T__3:
+				{
+				_localctx = new UnaryMinusContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(13);
+				match(T__3);
+				setState(14);
+				expr(1);
+				}
+				break;
 			default:
 				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(23);
+			setState(25);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,2,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -231,7 +253,7 @@ public class ToylParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(21);
+					setState(23);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
 					case 1:
@@ -239,9 +261,9 @@ public class ToylParser extends Parser {
 						_localctx = new ArithmeticExpressionContext(new ExprContext(_parentctx, _parentState));
 						((ArithmeticExpressionContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(15);
-						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
-						setState(16);
+						setState(17);
+						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
+						setState(18);
 						((ArithmeticExpressionContext)_localctx).binaryOp = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==T__0 || _la==T__1) ) {
@@ -252,8 +274,8 @@ public class ToylParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(17);
-						((ArithmeticExpressionContext)_localctx).right = expr(4);
+						setState(19);
+						((ArithmeticExpressionContext)_localctx).right = expr(5);
 						}
 						break;
 					case 2:
@@ -261,9 +283,9 @@ public class ToylParser extends Parser {
 						_localctx = new ArithmeticExpressionContext(new ExprContext(_parentctx, _parentState));
 						((ArithmeticExpressionContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(18);
-						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-						setState(19);
+						setState(20);
+						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
+						setState(21);
 						((ArithmeticExpressionContext)_localctx).binaryOp = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==T__2 || _la==T__3) ) {
@@ -274,14 +296,14 @@ public class ToylParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(20);
-						((ArithmeticExpressionContext)_localctx).right = expr(3);
+						setState(22);
+						((ArithmeticExpressionContext)_localctx).right = expr(4);
 						}
 						break;
 					}
 					} 
 				}
-				setState(25);
+				setState(27);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,2,_ctx);
 			}
@@ -308,23 +330,24 @@ public class ToylParser extends Parser {
 	private boolean expr_sempred(ExprContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 0:
-			return precpred(_ctx, 3);
+			return precpred(_ctx, 4);
 		case 1:
-			return precpred(_ctx, 2);
+			return precpred(_ctx, 3);
 		}
 		return true;
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\n\35\4\2\t\2\4\3"+
-		"\t\3\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\5\3\20\n\3\3\3\3\3\3\3\3\3\3"+
-		"\3\3\3\7\3\30\n\3\f\3\16\3\33\13\3\3\3\2\3\4\4\2\4\2\4\3\2\3\4\3\2\5\6"+
-		"\2\35\2\6\3\2\2\2\4\17\3\2\2\2\6\7\5\4\3\2\7\b\7\2\2\3\b\3\3\2\2\2\t\n"+
-		"\b\3\1\2\n\20\7\t\2\2\13\f\7\7\2\2\f\r\5\4\3\2\r\16\7\b\2\2\16\20\3\2"+
-		"\2\2\17\t\3\2\2\2\17\13\3\2\2\2\20\31\3\2\2\2\21\22\f\5\2\2\22\23\t\2"+
-		"\2\2\23\30\5\4\3\6\24\25\f\4\2\2\25\26\t\3\2\2\26\30\5\4\3\5\27\21\3\2"+
-		"\2\2\27\24\3\2\2\2\30\33\3\2\2\2\31\27\3\2\2\2\31\32\3\2\2\2\32\5\3\2"+
-		"\2\2\33\31\3\2\2\2\5\17\27\31";
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\n\37\4\2\t\2\4\3"+
+		"\t\3\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3\22\n\3\3\3\3\3\3"+
+		"\3\3\3\3\3\3\3\7\3\32\n\3\f\3\16\3\35\13\3\3\3\2\3\4\4\2\4\2\4\3\2\3\4"+
+		"\3\2\5\6\2 \2\6\3\2\2\2\4\21\3\2\2\2\6\7\5\4\3\2\7\b\7\2\2\3\b\3\3\2\2"+
+		"\2\t\n\b\3\1\2\n\22\7\t\2\2\13\f\7\7\2\2\f\r\5\4\3\2\r\16\7\b\2\2\16\22"+
+		"\3\2\2\2\17\20\7\6\2\2\20\22\5\4\3\3\21\t\3\2\2\2\21\13\3\2\2\2\21\17"+
+		"\3\2\2\2\22\33\3\2\2\2\23\24\f\6\2\2\24\25\t\2\2\2\25\32\5\4\3\7\26\27"+
+		"\f\5\2\2\27\30\t\3\2\2\30\32\5\4\3\6\31\23\3\2\2\2\31\26\3\2\2\2\32\35"+
+		"\3\2\2\2\33\31\3\2\2\2\33\34\3\2\2\2\34\5\3\2\2\2\35\33\3\2\2\2\5\21\31"+
+		"\33";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

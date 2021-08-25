@@ -57,5 +57,9 @@ class ToylLanguageTest {
   @Test
   void testNegativeLiteral() {
     assertEquals("-1", eval("-1"));
+    assertEquals("2", eval("1- -1"));
+    assertEquals("2", eval("1 - -1"));
+    assertEquals("1", eval("2 -1"));
+    assertEquals("1", eval("2-1"));
   }
 }
