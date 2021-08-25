@@ -29,10 +29,10 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   @Override
   public ToylNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
     var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
-    if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
-      return new ToylLiteralDoubleNode(number.doubleValue());
-    } else {
-      return new ToylLiteralIntNode(number.intValue());
+    try {
+      return new ToylLiteralLongNode(number.longValueExact());
+    } catch(ArithmeticException e) {
+      return new ToylLiteralNumberNode(number);
     }
   }
 }

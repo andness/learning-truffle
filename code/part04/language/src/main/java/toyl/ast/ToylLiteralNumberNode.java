@@ -3,19 +3,21 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-public class ToylLiteralDoubleNode extends ToylNode {
-  private final double value;
-  public ToylLiteralDoubleNode(double value) {
+import java.math.BigDecimal;
+
+public class ToylLiteralNumberNode extends ToylNode {
+  private final BigDecimal value;
+  public ToylLiteralNumberNode(BigDecimal value) {
     this.value = value;
   }
 
   @Override
-  public int executeInt(VirtualFrame frame) throws UnexpectedResultException {
+  public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
     throw new UnexpectedResultException(this.value);
   }
 
   @Override
-  public double executeDouble(VirtualFrame frame) {
+  public BigDecimal executeNumber(VirtualFrame frame) {
     return this.value;
   }
 
