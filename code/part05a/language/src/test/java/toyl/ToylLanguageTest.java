@@ -62,4 +62,14 @@ class ToylLanguageTest {
     assertEquals("1", eval("2 -1"));
     assertEquals("1", eval("2-1"));
   }
+
+  @Test
+  void testVariables() {
+    var program = """
+        var pi = 3.14
+        var r = 42
+        pi * r * r
+        """;
+    assertEquals("5538.96", eval(program));
+  }
 }

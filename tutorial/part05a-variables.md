@@ -69,6 +69,7 @@ expr
     | left=expr binaryOp=('*'|'/') right=expr #ArithmeticExpression
     | left=expr binaryOp=('+'|'-') right=expr #ArithmeticExpression
     | '(' expr ')'                            #ParenthesizedExpr
+	| '-' expr                                #UnaryMinus
     | NAME                                    #VarRefExpr
     ;
 
@@ -79,88 +80,45 @@ WS    : [ \t\r\n]+ -> skip;
 
 Ok, time to regenerate our parser and get to work on adapting our
 AST. So we're going to run into an immediate problem. Our top level
-`visitProgram` method just expects there to be a single `expr` but now
-it can hit either `assignment` or `expr` and it needs to visit them in
-order and produce a list.
-
-One way to fix that is to represent the program with a node. But we
-already have that, it's the `ToylProgramNode` which extends `RootNode`
-and so cannot also be a `ToylNode`. Instead we can introduce a
-`ToylStatementList` to hold the result of parsing the program rule. We
-want to change our hierarchy so that the root node is now a
-`ToylStatement` node with `ToylExpressionNode` inheriting it. The
-quickest way to do that is to rename `ToylNode` to
-`ToylExpressionNode` and then add `ToylStatementNode`. Lastly we'll
-move the `executeGeneric` method up to `ToylStatementNode`.
-
-That has to be the worst paragraph of prose ever written.
-
-Let me just put the code here. First, `ToylStatementNode`:
+`visitProgram` method just expects there to be a single `expr` but it
+should now handle a list of `statement`. So we'll update the
+`visitProgram` method:
 
 ```java
-package toyl.ast;
-
-import com.oracle.truffle.api.dsl.TypeSystemReference;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import toyl.ToylTypeSystem;
-
-@TypeSystemReference(ToylTypeSystem.class)
-public abstract class ToylStatementNode extends Node {
-  public abstract Object executeGeneric(VirtualFrame frame);
-}
+  @Override
+  public ToylNode visitProgram(ToylParser.ProgramContext ctx) {
+    return new ToylProgramNode(ctx.statement().stream().map(this::visit).toList());
+  }
 ```
 
-Next, `ToylExpressionNode` which now inherits it:
+And we need to make the corresponding change to `ToylProgramNode`:
 
 ```java
-package toyl.ast;
+public class ToylProgramNode extends ToylNode {
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
+  private final List<ToylNode> statements = new ArrayList<>();
 
-public abstract class ToylExpressionNode extends ToylStatementNode {
-  public abstract int executeInt(VirtualFrame frame) throws UnexpectedResultException;
-  public abstract double executeDouble(VirtualFrame frame);
-}
-```
-
-Remember to ensure that the operator and literal nodes all inherit
-`ToylExpressionNode`. Now we can add our `ToylStatementListNode` which
-will hold the result of parsing the `program` rule:
-
-```java
-package toyl.ast;
-
-import com.oracle.truffle.api.frame.VirtualFrame;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class ToylStatementListNode extends ToylStatementNode {
-
-  private final List<ToylStatementNode> statements = new ArrayList<>();
-
-  public ToylStatementListNode(List<ToylStatementNode> statements) {
+  public ToylProgramNode(List<ToylNode> statements) {
     this.statements.addAll(statements);
   }
 
   @Override
   public Object executeGeneric(VirtualFrame frame) {
     Object result = null;
-    for (ToylStatementNode statement : statements) {
+    for (ToylNode statement : statements) {
       result = statement.executeGeneric(frame);
     }
-    return result;
+    return result != null ? result.toString() : null;
   }
 
 }
 ```
 
-Note that this is where we implement the rule about the result of the
-last statement also being the result of the program as a whole.
-
-Ok, now we need to update the `ToylProgramNode`:
+Note that we changed it to inherit from `ToylNode`! Your IDE should
+now complain about the class not implementing `executeLong`. We'll fix
+that in a second, but first we'll update `ToylLanguage`. We're going
+to introduce a new node to represent the root node so create
+`src/main/java/toyl/ToylRootNode.java`:
 
 ```java
 package toyl.ast;
@@ -170,39 +128,71 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 
-public class ToylProgramNode extends RootNode {
+public class ToylRootNode extends RootNode {
 
-  private final ToylStatementListNode statements;
+  private final ToylNode program;
 
-  public ToylProgramNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, ToylStatementListNode statements) {
+  public ToylRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, ToylNode program) {
     super(language, frameDescriptor);
-    this.statements = statements;
+    this.program = program;
   }
 
   @Override
   public Object execute(VirtualFrame frame) {
-    return statements.executeGeneric(frame);
+    return program.executeGeneric(frame);
   }
 }
 ```
 
-And we need to adjust the `ToylParseTreeVisitor.visitProgram` method:
+Next create an instance of this where we currently create
+`ToylProgramNode` in `ToylLanguage`:
 
 ```java
   @Override
-  public ToylStatementListNode visitProgram(ToylParser.ProgramContext ctx) {
-    return new ToylStatementListNode(ctx.statement().stream().map(this::visit).toList());
+  protected CallTarget parse(ParsingRequest request) throws IOException {
+    final FrameDescriptor frameDescriptor = new FrameDescriptor();
+    var program = this.parseProgram(frameDescriptor, request.getSource());
+    var rootNode = new ToylRootNode(this, frameDescriptor, program);
+    return Truffle.getRuntime().createCallTarget(rootNode);
+  }
+
+  private ToylNode parseProgram(FrameDescriptor frameDescriptor, Source source) throws IOException {
+    var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
+    var parser = new ToylParser(new CommonTokenStream(lexer));
+    var parseTreeVisitor = new ToylParseTreeVisitor(frameDescriptor);
+    return parseTreeVisitor.visitProgram(parser.program());
   }
 ```
 
-And you will notice that all the other methods require some
-adjustments too since we now need to cast the result of the recursive
-`visit` calls into `ToylExpressionNode`. I'll add the code for
-`visitArithmeticExpression` here, but leave the rest as an exercise:
+Phew. Nearly there. I mentioned we also needed to fix the complaints
+in `ToylProgramNode` about it not implementing `executeLong`. We
+actually want to move these methods from `ToylNode` and down one
+level. To do this we'll introduce a new `ToylExpression` node which
+will be the parent for all expressions and looks like this:
+
+```java
+package toyl.ast;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
+
+import java.math.BigDecimal;
+
+public abstract class ToylExpressionNode extends ToylNode {
+  public abstract long executeLong(VirtualFrame frame) throws UnexpectedResultException;
+  public abstract BigDecimal executeNumber(VirtualFrame frame);
+}
+```
+
+Lastly, delete the same methods from the `ToylNode` class and update
+all the expression classes to inherit from `ToylExpressionNode`
+instead of `ToylNode`. This will break things in
+`ToylParseTreeVisitor` so we need to make some casts there. First,
+`visitArithmeticExpression`:
 
 ```java
   @Override
-  public ToylExpressionNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
+  public ToylNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
     var left = (ToylExpressionNode) this.visit(ctx.left);
     var right = (ToylExpressionNode) this.visit(ctx.right);
     return switch (ctx.binaryOp.getText()) {
@@ -215,82 +205,14 @@ adjustments too since we now need to cast the result of the recursive
   }
 ```
 
-And if you managed to get through all those changes correctly you may
-have noticed something odd. The `ToylProgramNode` and
-`ToylStatementListNode` classes. So far node classes have had a pretty
-straightforward relationship with the grammar file, and that makes it
-a lot easier to understand what's going on. Not so with these two. In
-my opinion this is due to a mistake made in the very first part where
-decided to call the root node `ToylProgramNode`. So I suggest that we
-fix this now and rename `ToylProgramNode` to `ToylRootNode`, and then
-let `ToylStatementListNode` become `ToylProgramNode`. Two quick
-Shift-F6 invocations and we should be good (that's the Rename
-refactoring if you're not yet quite up to speed on IntelliJ
-shortcuts). (But you really should be, the refactoring tools are
-fantastic).
-
-So if you got that done correctly you can update `ToylLanguage`. Try
-fixing it, there aren't too many changes needed. Here's what I ended
-up with (notice that I decided to rename `parseExpr` to `parseProgram`
-to better match the new structure):
-
-```java
-package toyl;
-
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.source.Source;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
-import toyl.ast.ToylRootNode;
-import toyl.ast.ToylProgramNode;
-import toyl.parser.ToylLexer;
-import toyl.parser.ToylParseTreeVisitor;
-import toyl.parser.ToylParser;
-
-import java.io.IOException;
-
-@TruffleLanguage.Registration(
-    id = ToylLanguage.ID,
-    name = "Toyl", defaultMimeType = ToylLanguage.MIME_TYPE,
-    characterMimeTypes = ToylLanguage.MIME_TYPE,
-    contextPolicy = TruffleLanguage.ContextPolicy.SHARED)
-public class ToylLanguage extends TruffleLanguage<ToylContext> {
-
-  public static final String ID = "toyl";
-  public static final String MIME_TYPE = "application/x-toyl";
-
-  @Override
-  protected ToylContext createContext(Env env) {
-    return new ToylContext();
-  }
-
-  @Override
-  protected CallTarget parse(ParsingRequest request) throws IOException {
-    var statements = this.parseProgram(request.getSource());
-    var program = new ToylRootNode(this, new FrameDescriptor(), statements);
-    return Truffle.getRuntime().createCallTarget(program);
-  }
-
-  private ToylProgramNode parseProgram(Source source) throws IOException {
-    var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
-    var parser = new ToylParser(new CommonTokenStream(lexer));
-    var parseTreeVisitor = new ToylParseTreeVisitor();
-    return parseTreeVisitor.visitProgram(parser.program());
-  }
-
-}
-```
+And as the final fix you need to add a cast in `visitUnaryMinus`. Ok,
+that was admittedly a lot of refactoring needed just to get to state
+where we can write the actual code for supporting variables, but we're
+there!
 
 ## Implementing variables
 
-With all that done we have the skeleton in place for handling
-variables although we're not really doing anything with them yet. Our
-existing tests should be green, but let's add a simple test for the
-use of variables:
+What better way to start than by writing a failing test:
 
 ```java
   @Test
@@ -300,64 +222,28 @@ use of variables:
         var r = 42
         pi * r * r
         """;
-    assertEquals(5538.96, evalDouble(program));
+    assertEquals("5538.96", eval(program));
   }
-
 ```
 
 This test will fail since we haven't yet written any code to handle
-variables. Let's do that!
-
-You may have noticed that we forgot something when we did all the node
-refactoring in the previous section. We didn't actually write code to
-visit the new assignment and variable reference rules. Let's do
-that. To perform variable assignment and referencing variables we will
-finally make use of the `VirtualFrame` parameter that gets passed to
-all the `execute*` methods. The javadoc for `VirtualFrame` starts with
-this:
+variables. We'll start by updating `ToylParseTreeVisitor` to handle
+the two new rules `assignment` and `varRef`. To perform variable
+assignment and referencing variables we will finally make use of the
+`VirtualFrame` parameter that gets passed to all the `execute*`
+methods. The javadoc for `VirtualFrame` starts with this:
 
 > Represents a frame containing values of local variables of the guest language
 
-Just what we need! So to see how this must be put together we can
-start with the variable reference node. We haven't created this node,
-but let's try. Just create a class called `ToylVarRefNode` and make it
-extend `ToylExpressionNode` and then add empty bodies for the abstract
-methods. Now, if you try to implement `executeGeneric`, how do you do
-that? Well, since `VirtualFrame` holds the local variables it sounds
-like we should somehow look up the variables from there. So how? If
-you look at the javadoc for `VirtualFrame` you'll see it extends
-`Frame` which is where all the useful methods are defined. In there is
-a bunch of `get*` methods. And as you can see, they all require a
-`FrameSlot`. So it seems we need to have a `FrameSlot` available in
-our `ToylVarRefNode` somehow. And since we're going to create our node
-in `ToylParseTreeVisitor` it probably must come from there. But how do
-we get a `FrameSlot`? Well, the javadoc for `FrameSlot` says:
+Just what we need! We'll need two new node classes to handle these two
+new rules, `ToylAssignmentNode` and `ToylVarRefNode`. But what fields
+do the classes need? Looking at the javadoc for `VirtualFrame` we see
+that it inherits a bunch of `get*` methods from `Frame`, all of which
+requires a `FrameSlot`. A `FrameSlot` is described as:
 
 > A slot in a `Frame` and `FrameDescriptor` that can store a value of a given type.
 
-Right.
-
-It would be nice if it said somewhere how to create a
-`FrameSlot`. Scroll down a bit in `FrameSlot` and you'll find lots of
-references to `FrameDescriptor.addFrameSlot` though, so that's a
-clue. So if we have a `FrameDescriptor` it seems we can create
-slots. And `FrameDescriptor` has a constructor ... so if we just
-create a `FrameDescriptor` field in `ToylParseTreeVisitor` we should
-be able to create a `FrameSlot`s. Now, it seems pretty reasonable that
-we must create slots when we declare variables, and we must look them
-up when we reference a variable. So let's try to implement
-`visitAssignment`:
-
-```java
-  @Override
-  public ToylStatementNode visitAssignment(ToylParser.AssignmentContext ctx) {
-    final String name = ctx.NAME().getText();
-    var slot = this.frameDescriptor.findOrAddFrameSlot(name);
-    return new ToylAssignmentNode(name, slot, (ToylExpressionNode) this.visit(ctx));
-  }
-```
-
-Ok, and that means we also need to create the `ToylAssignmentNode`:
+Let's try creating a skeleton `ToylAssignmentNode`:
 
 ```java
 package toyl.ast;
@@ -365,12 +251,12 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ToylAssignmentNode extends ToylStatementNode {
+public class ToylAssignmentNode extends ToylNode {
   private final String name;
   private final FrameSlot slot;
-  private final ToylExpressionNode expr;
+  private final ToylNode expr;
 
-  public ToylAssignmentNode(String name, FrameSlot slot, ToylExpressionNode expr) {
+  public ToylAssignmentNode(String name, FrameSlot slot, ToylNode expr) {
     this.name = name;
     this.slot = slot;
     this.expr = expr;
@@ -383,10 +269,57 @@ public class ToylAssignmentNode extends ToylStatementNode {
 }
 ```
 
-So I left that `executeGeneric` method empty. What we need to do here
-is of course evaluate the expression node and then assign the
-resulting value to a local variable (and remember that's what the
-frame is for):
+That seems pretty reasonable, we'll keep track of the name of the
+variable we're storing, the expression that produces a value, and the
+slot we need to store the result in. So now we need to create this
+node in our `ToylParseTreeVisitor`:
+
+```java
+  @Override
+  public ToylNode visitAssignment(ToylParser.AssignmentContext ctx) {
+    final String name = ctx.NAME().getText();
+    var slot = this.frameDescriptor.findOrAddFrameSlot(name);
+    return new ToylAssignmentNode(name, slot, this.visit(ctx.expr()));
+  }
+```
+
+To get a slot we use a `frameDescriptor`. Where did that come from?
+Well, we need to add it to our `ToylParseTreeVisitor` on creation, so
+first add this code at the start of the class:
+
+```java
+  private FrameDescriptor frameDescriptor;
+
+  public ToylParseTreeVisitor(FrameDescriptor frameDescriptor) {
+    this.frameDescriptor = frameDescriptor;
+  }
+```
+
+And then we need to create it in `ToylLanguage` and pass it into our
+`new ToylParseTreeVisitor` call. Note that we're going to create the
+`FrameDescriptor` in `parse` and pass it into `parseProgram`. This is
+necessary because we want to use the `frameDescriptor` we're passing
+to our `ToylRootNode`:
+
+```java
+  @Override
+  protected CallTarget parse(ParsingRequest request) throws IOException {
+    final FrameDescriptor frameDescriptor = new FrameDescriptor();
+    var statements = this.parseProgram(frameDescriptor, request.getSource());
+    var program = new ToylRootNode(this, frameDescriptor, statements);
+    return Truffle.getRuntime().createCallTarget(program);
+  }
+
+  private ToylNode parseProgram(FrameDescriptor frameDescriptor, Source source) throws IOException {
+    var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
+    var parser = new ToylParser(new CommonTokenStream(lexer));
+    var parseTreeVisitor = new ToylParseTreeVisitor(frameDescriptor);
+    return parseTreeVisitor.visitProgram(parser.program());
+  }
+```
+
+Now we can go back to `ToylAssignmentNode` and complete the
+`executeGeneric` method there:
 
 ```java
   @Override
@@ -397,28 +330,24 @@ frame is for):
   }
 ```
 
-Hm. If you tried to write that yourself you probably puzzled a bit
-about what `set*` method to call. How to know what type the result of
-the expression is? We'll get back to that.
-
-    TODO: Go back and replace this with the right code once I understand how or leave my exporation here for the reader to follow?
-
-With assignment done we can tackle variable referencing. We need to
-implement `visitVarRefExpr` and we need to construct a
-`ToylVarRefNode` from there. You should definitely try to write these
-two classes yourself. And then you can compare with my version below.
-
-Here's `visitVarRefExpr`:
+You're probably wondering if calling `setObject` is the right thing to
+do here, after all, the result of the expression can be a `long` or a
+`BigDecimal`. And you're right, this is not the final version. We'll
+return to that. But first we'll turn our attention to handling
+variable references. Let's start by adding support for it in
+`ToylParseTreeVisitor`:
 
 ```java
   @Override
-  public ToylStatementNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
+  public ToylNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
     final String name = ctx.NAME().getText();
     return new ToylVarRefNode(name, this.frameDescriptor.findFrameSlot(name));
   }
 ```
 
-And here's `ToylVarRefNode`:
+You can see how we get the slot using the variable name with the
+`findFrameSlot` method. Now we can create
+`src/main/java/language/ast/ToylVarRefNode.java`:
 
 ```java
 package toyl.ast;
@@ -437,18 +366,18 @@ public class ToylVarRefNode extends ToylExpressionNode {
   }
 
   @Override
-  public int executeInt(VirtualFrame frame) {
+  public long executeLong(VirtualFrame frame) {
     try {
-      return frame.getInt(this.slot);
+      return frame.getLong(this.slot);
     } catch (FrameSlotTypeException e) {
       throw new IllegalStateException(e);
     }
   }
 
   @Override
-  public double executeDouble(VirtualFrame frame) {
+  public BigDecimal executeNumber(VirtualFrame frame) {
     try {
-      return frame.getDouble(this.slot);
+      return (BigDecimal) frame.getObject(this.slot);
     } catch (FrameSlotTypeException e) {
       throw new IllegalStateException(e);
     }
@@ -461,189 +390,25 @@ public class ToylVarRefNode extends ToylExpressionNode {
 }
 ```
 
+Run the tests now, and you should see them come out green. We have
+variables! Yay!
+
 Notice that Truffle throws a checked `FrameSlotTypeException` that we
 have to catch. Currently our language is so simple that we can't
 really mix up types, we only have two types, and Truffle can
-implicitly cast our integers into doubles, but we still need to catch
+implicitly cast our longs into BigDecimal, but we still need to catch
 and rethrow this exception.
 
-If we try to run our test now you'll notice that it fails. And if
-you're smarter than me you may have noticed something about the
-`FrameDescriptor`. I wrote as if this was the first time we saw it and
-I just created it inside my `ToylParseTreeVisitor`. But look at
-`ToylLanguage.parse` and you'll notice another `new FrameDescriptor()`
-call. So the parse tree and interpreter don't share the same
-`FrameDescriptor`. How is the runtime going to know about the slots we
-created at parse time then?
-
-To fix this we need to create the `FrameDescriptor` in `ToylLanguage`
-and make sure it is shared by the parser and the interpreter, so pass
-it through `parseProgram` and into `ToylParseTreeVisitor` and make
-sure you pass the same instance to `ToylRootNode`. Here's how the two
-`parse` and `parseProgram` methods in `ToylLanguage` end up:
-
-```java
-  @Override
-  protected CallTarget parse(ParsingRequest request) throws IOException {
-    final FrameDescriptor frameDescriptor = new FrameDescriptor();
-    var statements = this.parseProgram(frameDescriptor, request.getSource());
-    var program = new ToylRootNode(this, frameDescriptor, statements);
-    return Truffle.getRuntime().createCallTarget(program);
-  }
-
-  private ToylProgramNode parseProgram(FrameDescriptor frameDescriptor, Source source) throws IOException {
-    var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
-    var parser = new ToylParser(new CommonTokenStream(lexer));
-    var parseTreeVisitor = new ToylParseTreeVisitor(frameDescriptor);
-    return parseTreeVisitor.visitProgram(parser.program());
-  }
-```
-
 With that in place our test should succeed! Awesome! You may also
-decide you want to play around with the calculator a bit, and if you
-do you'll notice that it immediately prints out the result of the
-first expression you enter. Since we now support executing sequences
-of statements we need to update the launcher to handle this. That in
-itself is pretty trivial, but while doing this we'll also look into
-how we can add syntax error messages with correct line numbers. We'll
-also look into how we annotate the AST with information about the
-source to enable better runtime error messages and be able to step
-through our code in the IntelliJ debugger. Onwards to chapter 6!
+decide you want to play around with the calculator a bit using the
+Launcher, and if you do you'll notice that it immediately prints out
+the result of the first expression you enter. Since we now support
+executing sequences of statements we need to update the launcher to
+handle this. That in itself is pretty trivial, but while doing this
+we'll also look into how we can add syntax error messages with correct
+line numbers. We'll also look into how we annotate the AST with
+information about the source to enable better runtime error messages
+and be able to step through our code in the IntelliJ debugger. We'll
+cover that in part 6. But first we're going specialize our variable
+references.
 
-## Specializing our variable references
-
-As we implemented `ToylVarRefNode` you may have wondered if we
-shouldn't use the Truffle specialization tools. It decided to skip it
-initially to keep the class as simple as possible. But let's try to
-adapt our code to use it. My first coverage of specialiation was a bit
-superficial and more in the "just accept this code for now"
-style. This time though I'd like to step through a few mistakes to try
-to shed a bit more light on what actually goes on.
-
-So the first thing we need to do is make our class abstract since the
-Truffle code generation is going to add the `execute` methods. And
-then we need to add the `@Specialization` magic. But how do we declare
-the specializations? In this case there is no arithmetic overflow to
-trigger the change. Instead, we know the type of the variable from the
-frame (using for example `frame.isInt(slot)`. To make use of this fact
-we need to use the `guards` parameter for `@Specialization`. 
-
-So we need to do three things:
-1. Make `ToylVarRefNode` be `abstract`
-2. Add `@Specialization` to `ToylVarRefNode.executeInt`
-3. Change the creation of `ToylVarRefNode` to use `ToylVarRefNodeGen.create` instead
-
-The specialization to add in step 2 is this:
-
-```java
-@Specialization(guards = "frame.isInt(slot)")
-```
-
-If you try to build you will get an error:
-
-> java: Error parsing expression 'frame.isInt(slot)': slot is not visible.
-
-Ignore that for now, the build shold still produce a
-`ToylVarRefNodeGen` class so that you can complete step 3.
-
-Ok got that? Now, what about that error? You might have figured it out
-already, our slot is `private` so the `ToylVarRefNodeGen` class won't
-be able to access it. Let's make it `protected` instead. 
-
-
-Now, I intentionally did not rename `executeInt`. If you look at the
-`ToylAddNode` we renamed the methods from `executeInt` to
-`addInt`. And if you look at the generated class it doesn't contain an
-`executeInt` method. Try renaming it to `readInt` and rebuild to see
-how that affects the `ToylVarRefNodeGen` class. You should see it
-generate an `executeInt` method.
-
-Now, to explore how this works we can add a test that does addition
-with only integer variables for now:
-
-```java
-  @Test
-  void testIntVariables() {
-    var program = """
-        var a = 2
-        var b = 2
-        a + b
-        """;
-    assertEquals(4, evalInt(program));
-  }
-```
-
-And if you try to run that test it will crash:
-
-> org.graalvm.polyglot.PolyglotException: com.oracle.truffle.api.dsl.UnsupportedSpecializationException: Unexpected values provided for ToylVarRefNodeGen@106cc338: [], []
-
-It's a good exercise to try to step through the code to see where it
-breaks. You can add a breakpoint to the where it crashes. If you do
-you will find that the guard test fails. If you look at the value of
-`slot` in the context of the debugger you will see that it has kind
-`Illegal`. So it appears we haven't stored the right type. And indeed,
-our implementation of `ToylAssignmentNode` just uses
-`frame.setObject`. As a quickfix we can try to just fix that code to
-use `setInt` instead, so replace `ToylAssignmentNode.executeGeneric`
-with:
-
-```java
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    var value = this.expr.executeGeneric(frame);
-    frame.setInt(this.slot, (Integer) value);
-    return value;
-  }
-```
-
-But now if you try to run the tests you should see the `testVariables`
-test fail, which is not surprising as it uses a double and we just
-changed our code to only support integers. So we get a class cast
-exception trying to set our double variable:
-
-> org.graalvm.polyglot.PolyglotException: java.lang.ClassCastException: class java.lang.Double cannot be cast to class java.lang.Integer (java.lang.Double and java.lang.Integer are in module java.base of loader 'bootstrap')
-
-
-So we neeed to fix that. How do we ensure that we call the right
-`frame.set(Int|Double)` method? Well, maybe we can try with
-`instanceof` checks:
-
-```java
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    var value = this.expr.executeGeneric(frame);
-    if (value instanceof Double) {
-      frame.setDouble(this.slot, (Double) value);
-    } else {
-      frame.setInt(this.slot, (Integer) value);
-    }
-    return value;
-  }
-```
-
-But it still fails. The error has changed though:
-
-> org.graalvm.polyglot.PolyglotException: com.oracle.truffle.api.dsl.UnsupportedSpecializationException: Unexpected values provided for ToylVarRefNodeGen@1603cd68: [], []
-
-This looks like the error we started with in the integer only case. If
-you look at the stack trace we're crashing in:
-
-> 	at toyl.ast.ToylVarRefNodeGen.executeAndSpecialize(ToylVarRefNodeGen.java:57)
-
-So it appears Truffle no longer knows how to handle doubles in var
-ref, which is perhaps not surprising as we've left executeDouble
-untouched. Let's update that to use `@Specialization` too:
-
-```java
-  @Specialization(guards = "frame.isDouble(slot)")
-  public double readDouble(VirtualFrame frame) {
-    try {
-      return frame.getDouble(this.slot);
-    } catch (FrameSlotTypeException e) {
-      throw new IllegalStateException(e);
-    }
-  }	
-```
-
-And it runs! Yay! But you may be less satisfied with our `instanceof`
-checks in `ToylAssignmentNode`. Can we improve on that?

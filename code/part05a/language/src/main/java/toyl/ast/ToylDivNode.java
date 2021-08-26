@@ -8,7 +8,7 @@ import java.math.MathContext;
 
 @NodeChild("left")
 @NodeChild("right")
-public abstract class ToylDivNode extends ToylNode {
+public abstract class ToylDivNode extends ToylExpressionNode {
 
   @Specialization(rewriteOn = ArithmeticException.class)
   protected long divLongs(long leftValue, long rightValue) {

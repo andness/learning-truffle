@@ -1,6 +1,10 @@
 grammar Toyl;
 
-program: expr EOF;
+program: statement+ EOF;
+
+statement: (expr|assignment);
+
+assignment: 'var' NAME '=' expr;
 
 expr
     : LITERAL_NUMBER                          #LiteralNumber
@@ -8,7 +12,9 @@ expr
     | left=expr binaryOp=('+'|'-') right=expr #ArithmeticExpression
     | '(' expr ')'                            #ParenthesizedExpr
     | '-' expr                                #UnaryMinus
+    | NAME                                    #VarRefExpr
     ;
 
 LITERAL_NUMBER: [0-9]+('.'[0-9]+)?;
+NAME: ([a-z]|[A-Z])+;
 WS    : [ \t\r\n]+ -> skip ;

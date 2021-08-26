@@ -1,13 +1,20 @@
 package toyl.parser;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import toyl.ast.*;
 
 import java.math.BigDecimal;
 
 public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
+  private FrameDescriptor frameDescriptor;
+
+  public ToylParseTreeVisitor(FrameDescriptor frameDescriptor) {
+    this.frameDescriptor = frameDescriptor;
+  }
+
   @Override
   public ToylNode visitProgram(ToylParser.ProgramContext ctx) {
-    return this.visit(ctx.expr());
+    return new ToylProgramNode(ctx.statement().stream().map(this::visit).toList());
   }
 
   @Override
@@ -17,11 +24,13 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
 
   @Override
   public ToylNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
+    var left = (ToylExpressionNode) this.visit(ctx.left);
+    var right = (ToylExpressionNode) this.visit(ctx.right);
     return switch (ctx.binaryOp.getText()) {
-      case "+" -> ToylAddNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
-      case "-" -> ToylSubNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
-      case "/" -> ToylDivNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
-      case "*" -> ToylMulNodeGen.create(this.visit(ctx.left), this.visit(ctx.right));
+      case "+" -> ToylAddNodeGen.create(left, right);
+      case "-" -> ToylSubNodeGen.create(left, right);
+      case "/" -> ToylDivNodeGen.create(left, right);
+      case "*" -> ToylMulNodeGen.create(left, right);
       default -> throw new IllegalStateException("Unexpected arithmetic operator: " + ctx.binaryOp.getText());
     };
   }
@@ -39,6 +48,19 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   @Override
   public ToylNode visitUnaryMinus(ToylParser.UnaryMinusContext ctx) {
     // unary minus is implemented simply as 0 - expr
-    return ToylSubNodeGen.create(new ToylLiteralLongNode(0), this.visit(ctx.expr()));
+    return ToylSubNodeGen.create(new ToylLiteralLongNode(0), (ToylExpressionNode) this.visit(ctx.expr()));
+  }
+
+  @Override
+  public ToylNode visitAssignment(ToylParser.AssignmentContext ctx) {
+    final String name = ctx.NAME().getText();
+    var slot = this.frameDescriptor.findOrAddFrameSlot(name);
+    return new ToylAssignmentNode(name, slot, this.visit(ctx.expr()));
+  }
+
+  @Override
+  public ToylNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
+    final String name = ctx.NAME().getText();
+    return new ToylVarRefNode(name, this.frameDescriptor.findFrameSlot(name));
   }
 }

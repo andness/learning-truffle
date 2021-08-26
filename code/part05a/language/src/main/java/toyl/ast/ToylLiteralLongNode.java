@@ -4,7 +4,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.math.BigDecimal;
 
-public class ToylLiteralLongNode extends ToylNode {
+public class ToylLiteralLongNode extends ToylExpressionNode {
   private final long value;
   public ToylLiteralLongNode(long value) {
     this.value = value;

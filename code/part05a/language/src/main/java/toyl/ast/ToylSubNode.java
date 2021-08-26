@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @NodeChild("left")
 @NodeChild("right")
-public abstract class ToylSubNode extends ToylNode {
+public abstract class ToylSubNode extends ToylExpressionNode {
   @Specialization(rewriteOn = ArithmeticException.class)
   protected long subLongs(long leftValue, long rightValue) {
     return Math.subtractExact(leftValue, rightValue);

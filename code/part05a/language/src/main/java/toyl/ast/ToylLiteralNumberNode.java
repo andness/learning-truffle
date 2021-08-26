@@ -5,7 +5,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import java.math.BigDecimal;
 
-public class ToylLiteralNumberNode extends ToylNode {
+public class ToylLiteralNumberNode extends ToylExpressionNode {
   private final BigDecimal value;
   public ToylLiteralNumberNode(BigDecimal value) {
     this.value = value;

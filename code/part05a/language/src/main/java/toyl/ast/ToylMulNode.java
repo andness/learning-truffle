@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @NodeChild("left")
 @NodeChild("right")
-public abstract class ToylMulNode extends ToylNode {
+public abstract class ToylMulNode extends ToylExpressionNode {
   @Specialization(rewriteOn = ArithmeticException.class)
   protected long mulLongs(long leftValue, long rightValue) {
     return Math.multiplyExact(leftValue, rightValue);
