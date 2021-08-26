@@ -43,6 +43,13 @@ public interface ToylVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code UnaryMinus}
+	 * labeled alternative in {@link ToylParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryMinus(ToylParser.UnaryMinusContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code ArithmeticExpression}
 	 * labeled alternative in {@link ToylParser#expr}.
 	 * @param ctx the parse tree

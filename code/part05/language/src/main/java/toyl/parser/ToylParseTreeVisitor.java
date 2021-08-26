@@ -15,17 +15,17 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylStatementNode> {
   }
 
   @Override
-  public ToylProgramNode visitProgram(ToylParser.ProgramContext ctx) {
+  public ToylStatementNode visitProgram(ToylParser.ProgramContext ctx) {
     return new ToylProgramNode(ctx.statement().stream().map(this::visit).toList());
   }
 
   @Override
-  public ToylExpressionNode visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx) {
-    return (ToylExpressionNode) this.visit(ctx.expr());
+  public ToylStatementNode visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx) {
+    return this.visit(ctx.expr());
   }
 
   @Override
-  public ToylExpressionNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
+  public ToylStatementNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
     var left = (ToylExpressionNode) this.visit(ctx.left);
     var right = (ToylExpressionNode) this.visit(ctx.right);
     return switch (ctx.binaryOp.getText()) {
@@ -38,13 +38,19 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylStatementNode> {
   }
 
   @Override
-  public ToylExpressionNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
+  public ToylStatementNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
     var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
-    if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
-      return new ToylLiteralNumberNode(new BigDecimal(number.doubleValue()));
-    } else {
-      return new ToylLiteralLongNode(number.intValue());
+    try {
+      return new ToylLiteralLongNode(number.longValueExact());
+    } catch(ArithmeticException e) {
+      return new ToylLiteralNumberNode(number);
     }
+  }
+
+  @Override
+  public ToylStatementNode visitUnaryMinus(ToylParser.UnaryMinusContext ctx) {
+    // unary minus is implemented simply as 0 - expr
+    return ToylSubNodeGen.create(new ToylLiteralLongNode(0), (ToylExpressionNode) this.visit(ctx.expr()));
   }
 
   @Override

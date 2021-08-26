@@ -19,7 +19,7 @@ public class ToylProgramNode extends ToylStatementNode {
     for (ToylStatementNode statement : statements) {
       result = statement.executeGeneric(frame);
     }
-    return result;
+    return result != null ? result.toString() : null;
   }
 
 }

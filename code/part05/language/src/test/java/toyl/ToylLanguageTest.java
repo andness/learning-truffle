@@ -21,32 +21,46 @@ class ToylLanguageTest {
     context.close();
   }
 
-  private int evalInt(String program) {
-    return context.eval("toyl", program).asInt();
-  }
-
-  private double evalDouble(String program) {
-    return context.eval("toyl", program).asDouble();
+  private String eval(String program) {
+    return context.eval("toyl", program).asString();
   }
 
   @Test
   void testIntegerAddition() {
-    assertEquals(2 + 2, evalInt("2+2"));
+    assertEquals("5", eval("2+3"));
+    assertEquals("5", eval("2+3.0"));
+    assertEquals("5", eval("2.0+3.0"));
   }
 
   @Test
-  void testDoubleAddition() {
-    assertEquals(2.0 + 2.0, evalDouble("2.0+2.0"));
-  }
-
-  @Test
-  void testMixedAddition() {
-    assertEquals(2 + 2.0, evalDouble("2+2.0"));
+  void testDecimalAddition() {
+    assertEquals("4.15", eval("3.14+1.01"));
   }
 
   @Test
   void testIntegerOverflow() {
-    assertEquals(Integer.MAX_VALUE + 1L, evalDouble("2147483647 + 1"));
+    assertEquals("9223372036854775808", eval("9223372036854775807 + 1"));
+  }
+
+  @Test
+  void testDivision() {
+    assertEquals("1.5", eval("3.0/2"));
+    assertEquals("1.5", eval("3/2"));
+    assertEquals("0.3333333333333333333333333333333333", eval("1/3"));
+  }
+
+  @Test
+  void testAllOps() {
+    assertEquals("2.5", eval("(4-3+1)*5/4"));
+  }
+
+  @Test
+  void testNegativeLiteral() {
+    assertEquals("-1", eval("-1"));
+    assertEquals("2", eval("1- -1"));
+    assertEquals("2", eval("1 - -1"));
+    assertEquals("1", eval("2 -1"));
+    assertEquals("1", eval("2-1"));
   }
 
   @Test
@@ -56,7 +70,7 @@ class ToylLanguageTest {
         var r = 42
         pi * r * r
         """;
-    assertEquals(5538.96, evalDouble(program));
+    assertEquals("5538.96", eval(program));
   }
 
   @Test
@@ -66,7 +80,7 @@ class ToylLanguageTest {
         var b = 2
         a + b
         """;
-    assertEquals(4, evalInt(program));
+    assertEquals("4", eval(program));
   }
 
 }

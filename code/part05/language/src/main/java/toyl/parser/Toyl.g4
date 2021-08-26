@@ -11,6 +11,7 @@ expr
     | left=expr binaryOp=('*'|'/') right=expr #ArithmeticExpression
     | left=expr binaryOp=('+'|'-') right=expr #ArithmeticExpression
     | '(' expr ')'                            #ParenthesizedExpr
+    | '-' expr                                #UnaryMinus
     | NAME                                    #VarRefExpr
     ;
 
