@@ -3,6 +3,8 @@ package toyl.ast;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import java.math.BigDecimal;
+
 public class ToylAssignmentNode extends ToylNode {
   private final String name;
   private final FrameSlot slot;
@@ -17,7 +19,11 @@ public class ToylAssignmentNode extends ToylNode {
   @Override
   public Object executeGeneric(VirtualFrame frame) {
     var value = this.expr.executeGeneric(frame);
-    frame.setObject(this.slot, value);
+    if (value instanceof BigDecimal) {
+      frame.setObject(this.slot, value);
+    } else {
+      frame.setLong(this.slot, (Long) value);
+    }
     return value;
   }
 }

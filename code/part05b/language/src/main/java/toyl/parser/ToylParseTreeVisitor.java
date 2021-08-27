@@ -61,6 +61,6 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   @Override
   public ToylNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
     final String name = ctx.NAME().getText();
-    return new ToylVarRefNode(name, this.frameDescriptor.findFrameSlot(name));
+    return ToylVarRefNodeGen.create(name, this.frameDescriptor.findFrameSlot(name));
   }
 }

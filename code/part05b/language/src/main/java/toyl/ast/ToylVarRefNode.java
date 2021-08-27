@@ -1,22 +1,23 @@
 package toyl.ast;
 
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.math.BigDecimal;
 
-public class ToylVarRefNode extends ToylExpressionNode {
+public abstract class ToylVarRefNode extends ToylExpressionNode {
   private final String name;
-  private final FrameSlot slot;
+  protected FrameSlot slot;
 
   public ToylVarRefNode(String name, FrameSlot slot) {
     this.name = name;
     this.slot = slot;
   }
 
-  @Override
-  public long executeLong(VirtualFrame frame) {
+  @Specialization(guards = "frame.isLong(slot)")
+  public long readLong(VirtualFrame frame) {
     try {
       return frame.getLong(this.slot);
     } catch (FrameSlotTypeException e) {
@@ -24,8 +25,8 @@ public class ToylVarRefNode extends ToylExpressionNode {
     }
   }
 
-  @Override
-  public BigDecimal executeNumber(VirtualFrame frame) {
+  @Specialization(guards = "frame.isObject(slot)")
+  public BigDecimal readBigDecimal(VirtualFrame frame) {
     try {
       return (BigDecimal) frame.getObject(this.slot);
     } catch (FrameSlotTypeException e) {
@@ -33,8 +34,4 @@ public class ToylVarRefNode extends ToylExpressionNode {
     }
   }
 
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    return frame.getValue(this.slot);
-  }
 }
