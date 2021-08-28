@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ToylLanguageTest {
 
@@ -74,12 +75,13 @@ class ToylLanguageTest {
   }
 
   @Test
-  void testIntegerVariables() {
+  void testReassign() {
     var program = """
-        var a = 2
-        var b = 2
-        a + b
+        var a = 1
+        var a = 1.5
+        a
         """;
-    assertEquals("4", eval(program));
+    System.out.println(eval(program));
+    //assertThrows(Exception.class, () -> eval(program));
   }
 }

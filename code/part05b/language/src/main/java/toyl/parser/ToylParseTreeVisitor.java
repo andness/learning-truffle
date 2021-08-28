@@ -55,7 +55,7 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   public ToylNode visitAssignment(ToylParser.AssignmentContext ctx) {
     final String name = ctx.NAME().getText();
     var slot = this.frameDescriptor.findOrAddFrameSlot(name);
-    return new ToylAssignmentNode(name, slot, this.visit(ctx.expr()));
+    return ToylAssignmentNodeGen.create(this.visit(ctx.expr()), name, slot);
   }
 
   @Override

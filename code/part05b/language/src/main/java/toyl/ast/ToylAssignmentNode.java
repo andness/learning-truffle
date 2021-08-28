@@ -1,29 +1,45 @@
 package toyl.ast;
 
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import java.math.BigDecimal;
+@NodeField(name = "name", type = String.class)
+@NodeField(name = "slot", type = FrameSlot.class)
+@NodeChild("expr")
+public abstract class ToylAssignmentNode extends ToylNode {
 
-public class ToylAssignmentNode extends ToylNode {
-  private final String name;
-  private final FrameSlot slot;
-  private final ToylNode expr;
+  abstract FrameSlot getSlot();
+  abstract String getName();
 
-  public ToylAssignmentNode(String name, FrameSlot slot, ToylNode expr) {
-    this.name = name;
-    this.slot = slot;
-    this.expr = expr;
+  protected boolean isLong() {
+    return true;
   }
 
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    var value = this.expr.executeGeneric(frame);
-    if (value instanceof BigDecimal) {
-      frame.setObject(this.slot, value);
-    } else {
-      frame.setLong(this.slot, (Long) value);
-    }
+  @Specialization(guards = "isLongOrIllegal(frame)")
+  public long assignLong(VirtualFrame frame, long value) {
+    frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Long);
+    frame.setLong(getSlot(), value);
     return value;
+  }
+
+  @Specialization(guards = "isObjectOrIllegal(frame)")
+  public Object assignNumber(VirtualFrame frame, Object value) {
+    frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Object);
+    frame.setObject(getSlot(), value);
+    return value;
+  }
+
+  protected boolean isLongOrIllegal(VirtualFrame frame) {
+    var kind = frame.getFrameDescriptor().getFrameSlotKind(getSlot());
+    return kind == FrameSlotKind.Long || kind == FrameSlotKind.Illegal;
+  }
+
+  protected boolean isObjectOrIllegal(VirtualFrame frame) {
+    var kind = frame.getFrameDescriptor().getFrameSlotKind(getSlot());
+    return kind == FrameSlotKind.Object || kind == FrameSlotKind.Illegal;
   }
 }
