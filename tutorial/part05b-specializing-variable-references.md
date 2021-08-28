@@ -326,6 +326,40 @@ use `FrameSlotKind.Object`. By doing that we get the expected crash.
 But ... is that actually what we want? Thinking about it, it seems
 silly. After all, we just want our program to be efficient. But it
 should be perfectly ok to assign a decimal number to a variable since
-Toyl really just one type: number. If the number is internally
+Toyl really just has one type: number. If the number is internally
 represented by a `long` or a `BigDecimal` is just an optimization
 detail.
+
+Luckily there's a fix for this. Let me introduce you to another
+Truffle annotation: `@Fallback`. This can be added to our class as a
+last resort and will be called in the failure case above. But before
+we add that, let's update our test to relect what we expect:
+
+```java
+  @Test
+  void testReassign() {
+    var program = """
+        var a = 1
+        var a = 1.5
+        a
+        """;
+    assertEquals("1.5", eval(program));
+  }
+```
+
+And then we can add the `@Fallback` method:
+
+```java
+  @Fallback
+  public Object assignNumberFallback(VirtualFrame frame, Object value) {
+    frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Object);
+    frame.setObject(getSlot(), value);
+    return value;
+  }
+```
+
+Our test should now turn green. But looking at the code now you may
+notice that `assignNumber` and `assignNumberFallback` are
+identical. So can we merge them? Indeed we can, just replace the
+`@Specialization` annotation on `assignNumber` with `@Fallback` and
+delete `assignNumberFallback`, et voilà!.

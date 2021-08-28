@@ -67,8 +67,8 @@ class ToylLanguageTest {
   @Test
   void testVariables() {
     var program = """
-        var pi = 3.14
-        var r = 42
+        var pi = 3.14        
+        var r = 42       
         pi * r * r
         """;
     assertEquals("5538.96", eval(program));
@@ -81,7 +81,6 @@ class ToylLanguageTest {
         var a = 1.5
         a
         """;
-    System.out.println(eval(program));
-    //assertThrows(Exception.class, () -> eval(program));
+    assertEquals("1.5", eval(program));
   }
 }

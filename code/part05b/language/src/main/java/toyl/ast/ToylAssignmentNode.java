@@ -1,5 +1,6 @@
 package toyl.ast;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -26,7 +27,7 @@ public abstract class ToylAssignmentNode extends ToylNode {
     return value;
   }
 
-  @Specialization(guards = "isObjectOrIllegal(frame)")
+  @Fallback
   public Object assignNumber(VirtualFrame frame, Object value) {
     frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Object);
     frame.setObject(getSlot(), value);
