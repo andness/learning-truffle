@@ -8,6 +8,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import java.math.BigDecimal;
+
 @NodeField(name = "name", type = String.class)
 @NodeField(name = "slot", type = FrameSlot.class)
 @NodeChild("expr")
@@ -16,10 +18,6 @@ public abstract class ToylAssignmentNode extends ToylNode {
   abstract FrameSlot getSlot();
   abstract String getName();
 
-  protected boolean isLong() {
-    return true;
-  }
-
   @Specialization(guards = "isLongOrIllegal(frame)")
   public long assignLong(VirtualFrame frame, long value) {
     frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Long);
@@ -27,8 +25,8 @@ public abstract class ToylAssignmentNode extends ToylNode {
     return value;
   }
 
-  @Fallback
-  public Object assignNumber(VirtualFrame frame, Object value) {
+  @Specialization(replaces = { "assignLong" })
+  public BigDecimal assignNumber(VirtualFrame frame, BigDecimal value) {
     frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Object);
     frame.setObject(getSlot(), value);
     return value;
@@ -37,10 +35,5 @@ public abstract class ToylAssignmentNode extends ToylNode {
   protected boolean isLongOrIllegal(VirtualFrame frame) {
     var kind = frame.getFrameDescriptor().getFrameSlotKind(getSlot());
     return kind == FrameSlotKind.Long || kind == FrameSlotKind.Illegal;
-  }
-
-  protected boolean isObjectOrIllegal(VirtualFrame frame) {
-    var kind = frame.getFrameDescriptor().getFrameSlotKind(getSlot());
-    return kind == FrameSlotKind.Object || kind == FrameSlotKind.Illegal;
   }
 }

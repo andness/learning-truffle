@@ -273,7 +273,7 @@ var a = 1.5
 a
 ```
 
-Will it return 1? 1.5? Or crash? We haven't really defined is this
+Will it return 1? 1.5? Or crash? We haven't really defined if this
 should be legal or not. But it seems like this should crash? The first
 assign should create the slot for `a` and the second assign should
 reuse the same slot. When the interpreter executes this it should
@@ -326,14 +326,14 @@ use `FrameSlotKind.Object`. By doing that we get the expected crash.
 But ... is that actually what we want? Thinking about it, it seems
 silly. After all, we just want our program to be efficient. But it
 should be perfectly ok to assign a decimal number to a variable since
-Toyl really just has one type: number. If the number is internally
-represented by a `long` or a `BigDecimal` is just an optimization
-detail.
+Toyl really just has one type: number. The fact that the number is
+internally represented by a `long` or a `BigDecimal` is just an
+optimization detail.
 
-Luckily there's a fix for this. Let me introduce you to another
-Truffle annotation: `@Fallback`. This can be added to our class as a
-last resort and will be called in the failure case above. But before
-we add that, let's update our test to relect what we expect:
+Looking back at how we handled this in `ToylAddNode` and the other
+arithmetic operators the answer lies there. We need to rewrite our
+`assignNumber` method to use the `replaces` option. But first, let's
+write the failing test:
 
 ```java
   @Test
@@ -347,19 +347,17 @@ we add that, let's update our test to relect what we expect:
   }
 ```
 
-And then we can add the `@Fallback` method:
+And then we can replace our `assignNumber` method:
 
 ```java
-  @Fallback
-  public Object assignNumberFallback(VirtualFrame frame, Object value) {
+  @Specialization(replaces = { "assignLong" })
+  public BigDecimal assignNumber(VirtualFrame frame, BigDecimal value) {
     frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Object);
     frame.setObject(getSlot(), value);
     return value;
   }
 ```
 
-Our test should now turn green. But looking at the code now you may
-notice that `assignNumber` and `assignNumberFallback` are
-identical. So can we merge them? Indeed we can, just replace the
-`@Specialization` annotation on `assignNumber` with `@Fallback` and
-delete `assignNumberFallback`, et voilà!.
+Our test should now turn green. You will also notice that we can
+delete our `isObjectOrIllegal` method. So all in all things got a
+little simpler, which is always a good thing.

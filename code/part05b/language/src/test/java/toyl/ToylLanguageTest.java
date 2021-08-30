@@ -78,9 +78,19 @@ class ToylLanguageTest {
   void testReassign() {
     var program = """
         var a = 1
-        var a = 1.5
+        var a = 1.5        
         a
         """;
     assertEquals("1.5", eval(program));
+  }
+
+  @Test
+  void testReassignNumberToLong() {
+    var program = """
+        var a = 1.5
+        var a = 1        
+        a
+        """;
+    assertEquals("1", eval(program));
   }
 }
