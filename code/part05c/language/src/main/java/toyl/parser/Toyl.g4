@@ -2,9 +2,11 @@ grammar Toyl;
 
 program: statement+ EOF;
 
-statement: (expr|assignment);
+statement: (expr|varDecl|assignment);
 
-assignment: 'var' NAME '=' expr;
+varDecl: 'var' NAME '=' expr;
+
+assignment: NAME '=' expr;
 
 expr
     : LITERAL_NUMBER                          #LiteralNumber

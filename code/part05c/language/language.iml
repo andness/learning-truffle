@@ -9,9 +9,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
+    <orderEntry type="jdk" jdkName="openjdk-16" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.graalvm.truffle:truffle-dsl-processor:21.2.0" level="project" />
+    <orderEntry type="library" name="Maven: org.graalvm.truffle:truffle-dsl-processor:21.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.graalvm.truffle:truffle-api:21.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.graalvm.sdk:graal-sdk:21.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.9.2" level="project" />

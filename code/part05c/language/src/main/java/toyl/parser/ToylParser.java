@@ -20,10 +20,11 @@ public class ToylParser extends Parser {
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, LITERAL_NUMBER=9, 
 		NAME=10, WS=11;
 	public static final int
-		RULE_program = 0, RULE_statement = 1, RULE_assignment = 2, RULE_expr = 3;
+		RULE_program = 0, RULE_statement = 1, RULE_varDecl = 2, RULE_assignment = 3, 
+		RULE_expr = 4;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"program", "statement", "assignment", "expr"
+			"program", "statement", "varDecl", "assignment", "expr"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -117,21 +118,21 @@ public class ToylParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(9); 
+			setState(11); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(8);
+				setState(10);
 				statement();
 				}
 				}
-				setState(11); 
+				setState(13); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__5) | (1L << T__6) | (1L << LITERAL_NUMBER) | (1L << NAME))) != 0) );
-			setState(13);
+			setState(15);
 			match(EOF);
 			}
 		}
@@ -149,6 +150,9 @@ public class ToylParser extends Parser {
 	public static class StatementContext extends ParserRuleContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
+		}
+		public VarDeclContext varDecl() {
+			return getRuleContext(VarDeclContext.class,0);
 		}
 		public AssignmentContext assignment() {
 			return getRuleContext(AssignmentContext.class,0);
@@ -170,27 +174,71 @@ public class ToylParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(17);
+			setState(20);
 			_errHandler.sync(this);
-			switch (_input.LA(1)) {
-			case T__5:
-			case T__6:
-			case LITERAL_NUMBER:
-			case NAME:
+			switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
+			case 1:
 				{
-				setState(15);
+				setState(17);
 				expr(0);
 				}
 				break;
-			case T__0:
+			case 2:
 				{
-				setState(16);
+				setState(18);
+				varDecl();
+				}
+				break;
+			case 3:
+				{
+				setState(19);
 				assignment();
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
 			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class VarDeclContext extends ParserRuleContext {
+		public TerminalNode NAME() { return getToken(ToylParser.NAME, 0); }
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public VarDeclContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_varDecl; }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ToylVisitor ) return ((ToylVisitor<? extends T>)visitor).visitVarDecl(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final VarDeclContext varDecl() throws RecognitionException {
+		VarDeclContext _localctx = new VarDeclContext(_ctx, getState());
+		enterRule(_localctx, 4, RULE_varDecl);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(22);
+			match(T__0);
+			setState(23);
+			match(NAME);
+			setState(24);
+			match(T__1);
+			setState(25);
+			expr(0);
 			}
 		}
 		catch (RecognitionException re) {
@@ -222,17 +270,15 @@ public class ToylParser extends Parser {
 
 	public final AssignmentContext assignment() throws RecognitionException {
 		AssignmentContext _localctx = new AssignmentContext(_ctx, getState());
-		enterRule(_localctx, 4, RULE_assignment);
+		enterRule(_localctx, 6, RULE_assignment);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(19);
-			match(T__0);
-			setState(20);
+			setState(27);
 			match(NAME);
-			setState(21);
+			setState(28);
 			match(T__1);
-			setState(22);
+			setState(29);
 			expr(0);
 			}
 		}
@@ -325,14 +371,14 @@ public class ToylParser extends Parser {
 		int _parentState = getState();
 		ExprContext _localctx = new ExprContext(_ctx, _parentState);
 		ExprContext _prevctx = _localctx;
-		int _startState = 6;
-		enterRecursionRule(_localctx, 6, RULE_expr, _p);
+		int _startState = 8;
+		enterRecursionRule(_localctx, 8, RULE_expr, _p);
 		int _la;
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(33);
+			setState(40);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case LITERAL_NUMBER:
@@ -341,7 +387,7 @@ public class ToylParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
-				setState(25);
+				setState(32);
 				match(LITERAL_NUMBER);
 				}
 				break;
@@ -350,11 +396,11 @@ public class ToylParser extends Parser {
 				_localctx = new ParenthesizedExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(26);
+				setState(33);
 				match(T__6);
-				setState(27);
+				setState(34);
 				expr(0);
-				setState(28);
+				setState(35);
 				match(T__7);
 				}
 				break;
@@ -363,9 +409,9 @@ public class ToylParser extends Parser {
 				_localctx = new UnaryMinusContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(30);
+				setState(37);
 				match(T__5);
-				setState(31);
+				setState(38);
 				expr(2);
 				}
 				break;
@@ -374,7 +420,7 @@ public class ToylParser extends Parser {
 				_localctx = new VarRefExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(32);
+				setState(39);
 				match(NAME);
 				}
 				break;
@@ -382,7 +428,7 @@ public class ToylParser extends Parser {
 				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(43);
+			setState(50);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,4,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -390,7 +436,7 @@ public class ToylParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(41);
+					setState(48);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
 					case 1:
@@ -398,9 +444,9 @@ public class ToylParser extends Parser {
 						_localctx = new ArithmeticExpressionContext(new ExprContext(_parentctx, _parentState));
 						((ArithmeticExpressionContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(35);
+						setState(42);
 						if (!(precpred(_ctx, 5))) throw new FailedPredicateException(this, "precpred(_ctx, 5)");
-						setState(36);
+						setState(43);
 						((ArithmeticExpressionContext)_localctx).binaryOp = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==T__2 || _la==T__3) ) {
@@ -411,7 +457,7 @@ public class ToylParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(37);
+						setState(44);
 						((ArithmeticExpressionContext)_localctx).right = expr(6);
 						}
 						break;
@@ -420,9 +466,9 @@ public class ToylParser extends Parser {
 						_localctx = new ArithmeticExpressionContext(new ExprContext(_parentctx, _parentState));
 						((ArithmeticExpressionContext)_localctx).left = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(38);
+						setState(45);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
-						setState(39);
+						setState(46);
 						((ArithmeticExpressionContext)_localctx).binaryOp = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==T__4 || _la==T__5) ) {
@@ -433,14 +479,14 @@ public class ToylParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(40);
+						setState(47);
 						((ArithmeticExpressionContext)_localctx).right = expr(5);
 						}
 						break;
 					}
 					} 
 				}
-				setState(45);
+				setState(52);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,4,_ctx);
 			}
@@ -459,7 +505,7 @@ public class ToylParser extends Parser {
 
 	public boolean sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
 		switch (ruleIndex) {
-		case 3:
+		case 4:
 			return expr_sempred((ExprContext)_localctx, predIndex);
 		}
 		return true;
@@ -475,19 +521,22 @@ public class ToylParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\r\61\4\2\t\2\4\3"+
-		"\t\3\4\4\t\4\4\5\t\5\3\2\6\2\f\n\2\r\2\16\2\r\3\2\3\2\3\3\3\3\5\3\24\n"+
-		"\3\3\4\3\4\3\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\5\5$\n\5\3"+
-		"\5\3\5\3\5\3\5\3\5\3\5\7\5,\n\5\f\5\16\5/\13\5\3\5\2\3\b\6\2\4\6\b\2\4"+
-		"\3\2\5\6\3\2\7\b\2\63\2\13\3\2\2\2\4\23\3\2\2\2\6\25\3\2\2\2\b#\3\2\2"+
-		"\2\n\f\5\4\3\2\13\n\3\2\2\2\f\r\3\2\2\2\r\13\3\2\2\2\r\16\3\2\2\2\16\17"+
-		"\3\2\2\2\17\20\7\2\2\3\20\3\3\2\2\2\21\24\5\b\5\2\22\24\5\6\4\2\23\21"+
-		"\3\2\2\2\23\22\3\2\2\2\24\5\3\2\2\2\25\26\7\3\2\2\26\27\7\f\2\2\27\30"+
-		"\7\4\2\2\30\31\5\b\5\2\31\7\3\2\2\2\32\33\b\5\1\2\33$\7\13\2\2\34\35\7"+
-		"\t\2\2\35\36\5\b\5\2\36\37\7\n\2\2\37$\3\2\2\2 !\7\b\2\2!$\5\b\5\4\"$"+
-		"\7\f\2\2#\32\3\2\2\2#\34\3\2\2\2# \3\2\2\2#\"\3\2\2\2$-\3\2\2\2%&\f\7"+
-		"\2\2&\'\t\2\2\2\',\5\b\5\b()\f\6\2\2)*\t\3\2\2*,\5\b\5\7+%\3\2\2\2+(\3"+
-		"\2\2\2,/\3\2\2\2-+\3\2\2\2-.\3\2\2\2.\t\3\2\2\2/-\3\2\2\2\7\r\23#+-";
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\r8\4\2\t\2\4\3\t"+
+		"\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\6\2\16\n\2\r\2\16\2\17\3\2\3\2\3\3\3\3"+
+		"\3\3\5\3\27\n\3\3\4\3\4\3\4\3\4\3\4\3\5\3\5\3\5\3\5\3\6\3\6\3\6\3\6\3"+
+		"\6\3\6\3\6\3\6\3\6\5\6+\n\6\3\6\3\6\3\6\3\6\3\6\3\6\7\6\63\n\6\f\6\16"+
+		"\6\66\13\6\3\6\2\3\n\7\2\4\6\b\n\2\4\3\2\5\6\3\2\7\b\2:\2\r\3\2\2\2\4"+
+		"\26\3\2\2\2\6\30\3\2\2\2\b\35\3\2\2\2\n*\3\2\2\2\f\16\5\4\3\2\r\f\3\2"+
+		"\2\2\16\17\3\2\2\2\17\r\3\2\2\2\17\20\3\2\2\2\20\21\3\2\2\2\21\22\7\2"+
+		"\2\3\22\3\3\2\2\2\23\27\5\n\6\2\24\27\5\6\4\2\25\27\5\b\5\2\26\23\3\2"+
+		"\2\2\26\24\3\2\2\2\26\25\3\2\2\2\27\5\3\2\2\2\30\31\7\3\2\2\31\32\7\f"+
+		"\2\2\32\33\7\4\2\2\33\34\5\n\6\2\34\7\3\2\2\2\35\36\7\f\2\2\36\37\7\4"+
+		"\2\2\37 \5\n\6\2 \t\3\2\2\2!\"\b\6\1\2\"+\7\13\2\2#$\7\t\2\2$%\5\n\6\2"+
+		"%&\7\n\2\2&+\3\2\2\2\'(\7\b\2\2(+\5\n\6\4)+\7\f\2\2*!\3\2\2\2*#\3\2\2"+
+		"\2*\'\3\2\2\2*)\3\2\2\2+\64\3\2\2\2,-\f\7\2\2-.\t\2\2\2.\63\5\n\6\b/\60"+
+		"\f\6\2\2\60\61\t\3\2\2\61\63\5\n\6\7\62,\3\2\2\2\62/\3\2\2\2\63\66\3\2"+
+		"\2\2\64\62\3\2\2\2\64\65\3\2\2\2\65\13\3\2\2\2\66\64\3\2\2\2\7\17\26*"+
+		"\62\64";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

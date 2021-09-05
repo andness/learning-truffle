@@ -23,6 +23,12 @@ public interface ToylVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStatement(ToylParser.StatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link ToylParser#varDecl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarDecl(ToylParser.VarDeclContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link ToylParser#assignment}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

@@ -1,12 +1,13 @@
 package toyl;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import toyl.errors.ToylSemanticError;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ToylLanguageTest {
 
@@ -78,7 +79,7 @@ class ToylLanguageTest {
   void testReassign() {
     var program = """
         var a = 1
-        var a = 1.5        
+        a = 1.5        
         a
         """;
     assertEquals("1.5", eval(program));
@@ -88,9 +89,19 @@ class ToylLanguageTest {
   void testReassignNumberToLong() {
     var program = """
         var a = 1.5
-        var a = 1        
+        a = 1        
         a
         """;
     assertEquals("1", eval(program));
+  }
+
+  @Test
+  void testRedeclaringVariableIsAnError() {
+    var program = """
+        var a = 1.5
+        var a = 1        
+        """;
+    var error = assertThrows(PolyglotException.class, () -> eval(program));
+    assertTrue(error.getMessage().startsWith("Attempt to redeclare previously declared variable"));
   }
 }

@@ -2,6 +2,7 @@ package toyl.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import toyl.ast.*;
+import toyl.errors.ToylSemanticError;
 
 import java.math.BigDecimal;
 
@@ -54,7 +55,10 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   @Override
   public ToylNode visitAssignment(ToylParser.AssignmentContext ctx) {
     final String name = ctx.NAME().getText();
-    var slot = this.frameDescriptor.findOrAddFrameSlot(name);
+    var slot = this.frameDescriptor.findFrameSlot(name);
+    if(slot == null) {
+      throw new ToylSemanticError("Attempt to assign undeclared variable " + name);
+    }
     return ToylAssignmentNodeGen.create(this.visit(ctx.expr()), name, slot);
   }
 
@@ -62,5 +66,15 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   public ToylNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
     final String name = ctx.NAME().getText();
     return ToylVarRefNodeGen.create(name, this.frameDescriptor.findFrameSlot(name));
+  }
+
+  @Override
+  public ToylNode visitVarDecl(ToylParser.VarDeclContext ctx) {
+    final String name = ctx.NAME().getText();
+    if(this.frameDescriptor.findFrameSlot(name) != null) {
+      throw new ToylSemanticError("Attempt to redeclare previously declared variable " + name);
+    }
+    var slot = this.frameDescriptor.addFrameSlot(name);
+    return ToylVarDeclNodeGen.create(this.visit(ctx.expr()), name, slot);
   }
 }
