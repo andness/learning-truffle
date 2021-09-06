@@ -1,3 +1,0 @@
-var pi = 3.14
-var r = 42
-pi * r * r

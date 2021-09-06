@@ -7,15 +7,15 @@ import com.oracle.truffle.api.nodes.RootNode;
 
 public class ToylRootNode extends RootNode {
 
-  private final ToylProgramNode statements;
+  private final ToylNode program;
 
-  public ToylRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, ToylProgramNode statements) {
+  public ToylRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, ToylNode program) {
     super(language, frameDescriptor);
-    this.statements = statements;
+    this.program = program;
   }
 
   @Override
   public Object execute(VirtualFrame frame) {
-    return statements.executeGeneric(frame);
+    return program.executeGeneric(frame);
   }
 }

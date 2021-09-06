@@ -4,22 +4,21 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.util.ArrayList;
 import java.util.List;
+public class ToylProgramNode extends ToylNode {
 
-public class ToylProgramNode extends ToylStatementNode {
+  private final List<ToylNode> statements = new ArrayList<>();
 
-  private final List<ToylStatementNode> statements = new ArrayList<>();
-
-  public ToylProgramNode(List<ToylStatementNode> statements) {
+  public ToylProgramNode(List<ToylNode> statements) {
     this.statements.addAll(statements);
   }
 
   @Override
   public Object executeGeneric(VirtualFrame frame) {
     Object result = null;
-    for (ToylStatementNode statement : statements) {
+    for (ToylNode statement : statements) {
       result = statement.executeGeneric(frame);
     }
-    return result;
+    return result != null ? result.toString() : null;
   }
 
 }

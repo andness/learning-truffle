@@ -1,13 +1,12 @@
 package toyl.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import toyl.ast.*;
+import toyl.errors.ToylSemanticError;
 
 import java.math.BigDecimal;
 
-public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylStatementNode> {
-
+public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylNode> {
   private FrameDescriptor frameDescriptor;
 
   public ToylParseTreeVisitor(FrameDescriptor frameDescriptor) {
@@ -15,17 +14,17 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylStatementNode> {
   }
 
   @Override
-  public ToylProgramNode visitProgram(ToylParser.ProgramContext ctx) {
+  public ToylNode visitProgram(ToylParser.ProgramContext ctx) {
     return new ToylProgramNode(ctx.statement().stream().map(this::visit).toList());
   }
 
   @Override
-  public ToylExpressionNode visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx) {
-    return (ToylExpressionNode) this.visit(ctx.expr());
+  public ToylNode visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx) {
+    return this.visit(ctx.expr());
   }
 
   @Override
-  public ToylExpressionNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
+  public ToylNode visitArithmeticExpression(ToylParser.ArithmeticExpressionContext ctx) {
     var left = (ToylExpressionNode) this.visit(ctx.left);
     var right = (ToylExpressionNode) this.visit(ctx.right);
     return switch (ctx.binaryOp.getText()) {
@@ -38,25 +37,44 @@ public class ToylParseTreeVisitor extends ToylBaseVisitor<ToylStatementNode> {
   }
 
   @Override
-  public ToylExpressionNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
+  public ToylNode visitLiteralNumber(ToylParser.LiteralNumberContext ctx) {
     var number = new BigDecimal(ctx.LITERAL_NUMBER().getText());
-    if (number.scale() > 0 || number.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) > 0) {
-      return new ToylLiteralDoubleNode(number.doubleValue());
-    } else {
-      return new ToylLiteralIntNode(number.intValue());
+    try {
+      return new ToylLiteralLongNode(number.longValueExact());
+    } catch(ArithmeticException e) {
+      return new ToylLiteralNumberNode(number);
     }
   }
 
   @Override
-  public ToylStatementNode visitAssignment(ToylParser.AssignmentContext ctx) {
-    final String name = ctx.NAME().getText();
-    var slot = this.frameDescriptor.findOrAddFrameSlot(name);
-    return new ToylAssignmentNode(name, slot, (ToylExpressionNode) this.visit(ctx.expr()));
+  public ToylNode visitUnaryMinus(ToylParser.UnaryMinusContext ctx) {
+    // unary minus is implemented simply as 0 - expr
+    return ToylSubNodeGen.create(new ToylLiteralLongNode(0), (ToylExpressionNode) this.visit(ctx.expr()));
   }
 
   @Override
-  public ToylStatementNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
+  public ToylNode visitAssignment(ToylParser.AssignmentContext ctx) {
     final String name = ctx.NAME().getText();
-    return new ToylVarRefNode(name, this.frameDescriptor.findFrameSlot(name));
+    var slot = this.frameDescriptor.findFrameSlot(name);
+    if(slot == null) {
+      throw new ToylSemanticError("Attempt to assign undeclared variable " + name);
+    }
+    return ToylAssignmentNodeGen.create(this.visit(ctx.expr()), name, slot);
+  }
+
+  @Override
+  public ToylNode visitVarRefExpr(ToylParser.VarRefExprContext ctx) {
+    final String name = ctx.NAME().getText();
+    return ToylVarRefNodeGen.create(name, this.frameDescriptor.findFrameSlot(name));
+  }
+
+  @Override
+  public ToylNode visitVarDecl(ToylParser.VarDeclContext ctx) {
+    final String name = ctx.NAME().getText();
+    if(this.frameDescriptor.findFrameSlot(name) != null) {
+      throw new ToylSemanticError("Attempt to redeclare previously declared variable " + name);
+    }
+    var slot = this.frameDescriptor.addFrameSlot(name);
+    return ToylVarDeclNodeGen.create(this.visit(ctx.expr()), name, slot);
   }
 }

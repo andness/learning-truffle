@@ -3,15 +3,18 @@ package toyl.ast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@NodeChild("left") @NodeChild("right")
+import java.math.BigDecimal;
+
+@NodeChild("left")
+@NodeChild("right")
 public abstract class ToylMulNode extends ToylExpressionNode {
   @Specialization(rewriteOn = ArithmeticException.class)
-  protected int mulInts(int leftValue, int rightValue) {
+  protected long mulLongs(long leftValue, long rightValue) {
     return Math.multiplyExact(leftValue, rightValue);
   }
 
-  @Specialization(replaces = "mulInts")
-  protected double mulDoubles(double leftValue, double rightValue) {
-    return leftValue * rightValue;
+  @Specialization(replaces = "mulLongs")
+  protected BigDecimal mulNumbers(BigDecimal leftValue, BigDecimal rightValue) {
+    return leftValue.multiply(rightValue);
   }
 }

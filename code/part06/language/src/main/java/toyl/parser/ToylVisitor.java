@@ -23,6 +23,12 @@ public interface ToylVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStatement(ToylParser.StatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link ToylParser#varDecl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarDecl(ToylParser.VarDeclContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link ToylParser#assignment}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -42,6 +48,13 @@ public interface ToylVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitParenthesizedExpr(ToylParser.ParenthesizedExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code UnaryMinus}
+	 * labeled alternative in {@link ToylParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryMinus(ToylParser.UnaryMinusContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ArithmeticExpression}
 	 * labeled alternative in {@link ToylParser#expr}.

@@ -1,6 +1,5 @@
 package toyl.ast;
 
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 @NodeField(name = "name", type = String.class)
 @NodeField(name = "slot", type = FrameSlot.class)
 @NodeChild("expr")
-public abstract class ToylAssignmentNode extends ToylNode {
+public abstract class ToylVarDeclNode extends ToylNode {
 
   abstract FrameSlot getSlot();
   abstract String getName();
