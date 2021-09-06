@@ -5,8 +5,8 @@ import org.graalvm.polyglot.PolyglotException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import toyl.errors.ToylSemanticError;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ToylLanguageTest {
@@ -102,6 +102,31 @@ class ToylLanguageTest {
         var a = 1        
         """;
     var error = assertThrows(PolyglotException.class, () -> eval(program));
-    assertTrue(error.getMessage().startsWith("Attempt to redeclare previously declared variable"));
+    assertThat(error.getMessage()).startsWith("Attempt to redeclare previously declared variable");
+  }
+
+  @Test
+  void testSyntaxError() {
+    var program = "var a * 3";
+    var error = assertThrows(PolyglotException.class, () -> eval(program));
+    assertThat(error.getMessage()).isEqualTo("""
+Syntax error on line 1: mismatched input '*' expecting '='
+var a * 3
+      ^
+""");
+  }
+
+  @Test
+  void testAssignmentToNonExisting() {
+    var program = "a = 1";
+    var error = assertThrows(PolyglotException.class, () -> eval(program));
+    assertThat(error.getMessage()).startsWith("Attempt to assign undeclared variable");
+  }
+
+  @Test
+  void testUseOfUndeclaredVariable() {
+    var program = "a * 1";
+    var error = assertThrows(PolyglotException.class, () -> eval(program));
+    assertThat(error.getMessage()).startsWith("Use of undeclared variable a");
   }
 }

@@ -21,6 +21,9 @@
   - We finally get to use that VirtualFrame!
   - Specialization of variable refs
 - Part 6: Source files and syntax errors
+  - Read source code from files
+  - Show error location for errors
+  - Introduction to the Truffle Interop Library
 - Part 7: If conditional
 - Part 8: Functions
   - We finally get to implement factorial!

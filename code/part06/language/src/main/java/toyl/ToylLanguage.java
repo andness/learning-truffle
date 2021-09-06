@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import toyl.ast.ToylNode;
 import toyl.ast.ToylProgramNode;
 import toyl.ast.ToylRootNode;
+import toyl.parser.ToylErrorListener;
 import toyl.parser.ToylLexer;
 import toyl.parser.ToylParseTreeVisitor;
 import toyl.parser.ToylParser;
@@ -43,6 +44,11 @@ public class ToylLanguage extends TruffleLanguage<ToylContext> {
   private ToylNode parseProgram(FrameDescriptor frameDescriptor, Source source) throws IOException {
     var lexer = new ToylLexer(CharStreams.fromReader(source.getReader()));
     var parser = new ToylParser(new CommonTokenStream(lexer));
+    lexer.removeErrorListeners();
+    parser.removeErrorListeners();
+    final ToylErrorListener errorListener = new ToylErrorListener(source);
+    lexer.addErrorListener(errorListener);
+    parser.addErrorListener(errorListener);
     var parseTreeVisitor = new ToylParseTreeVisitor(frameDescriptor);
     return parseTreeVisitor.visitProgram(parser.program());
   }
